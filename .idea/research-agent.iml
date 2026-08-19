@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module type="PYTHON_MODULE" version="4">
+  <component name="NewModuleRootManager">
+    <content url="file://$MODULE_DIR$">
+      <sourceFolder url="file://$MODULE_DIR$/app" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/app/api" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/app/collectors" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/app/config" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/app/database" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/app/embeddings" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/app/llm" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/app/models" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/app/planner" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/app/reports" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/app/scheduler" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/app/skills" isTestSource="false" />
+      <excludeFolder url="file://$MODULE_DIR$/.venv" />
+    </content>
+    <orderEntry type="jdk" jdkName="~\Documents\research-agent\.venv" jdkType="Python SDK" />
+    <orderEntry type="sourceFolder" forTests="false" />
+  </component>
+</module>

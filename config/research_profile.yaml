@@ -1,0 +1,33 @@
+interests:
+  - Deep Learning
+  - Reinforcement Learning
+  - Probabilistic Machine Learning
+  - Deep Generative Modeling
+  - Graph Neural Network
+  - Causal Machine Learning
+
+priority:
+  Deep Learning: 100
+  Reinforcement Learning: 99
+  Probabilistic Machine Learning: 98
+  Deep Generative Modeling: 99
+  Graph Neural Network: 100
+  Causal Machine Learning: 100
+
+ignored:
+  - Healthcare
+  - Biology
+
+favorite_authors:
+  - Richard Sutton
+  - Yoshua Bengio
+  - Yann LeCun
+
+favorite_conferences:
+  - NeurIPS
+  - ICML
+  - ICLR
+
+reading_level: advanced
+max_daily_papers: 20
+summary_style: technical

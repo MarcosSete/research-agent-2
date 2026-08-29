@@ -7,7 +7,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_PROFILE_PATH = PROJECT_ROOT / "config" / "research_profile.yaml"
 
 class ResearchProfile(BaseModel):
-    interests: list[str]
+    interests: list[str] = Field(default_factory=list)
     priority: dict[str,int] = Field(default_factory=dict)
     ignored: list[str] = Field(default_factory=list)
     favorite_authors: list[str] = Field(default_factory=list)

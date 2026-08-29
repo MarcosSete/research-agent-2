@@ -9,11 +9,12 @@ possa executar em um determinado dia do mês.
 
 A arquitetura do projeto foi desenhada como se segue na imagem abaixo, o objetivo foi deixar tudo que é considerado
 Determístico de fora do escopo do agente proprieamente dito, por exemplo, existem API's que podemos chamar, na qual
-Retornam os papers para nós, então, não é necessário usar agentes aplicados a essa tarefa.
+Retornam os papers para nós, então, não é necessário usar agentes aplicados a essa tarefa, esse princípio é conhecido
+como **Principle of Least Agency**
 
 Assim, podemos ver que os agentes atuam de fato, na seção de sumário, recomendações e reportes mensais.
 
-![readme.png](../../Desktop/readme.png)
+![readme.png](docs/images/readme.png)
 
 ```
   research-agent

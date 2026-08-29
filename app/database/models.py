@@ -22,3 +22,22 @@ class AuthorORM(Base):
 
 class PaperORM(Base):
     __tablename__ = "papers"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    title: Mapped[str] = mapped_column(String(500))
+    abstract: Mapped[str] = mapped_column(Text)
+
+    source_name: Mapped[str] = mapped_column(String(50), index = True)
+    source_url: Mapped[str] = mapped_column(String(500), unique=True) ## garanti que os papers tenha somente uma url fonte, assim evitando duplicação.
+    published_date: Mapped[date | None] = mapped_column(Date, nullable=True)
+    conference: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    pdf_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    has_code: Mapped[bool] = mapped_column(Boolean, nullable=True)
+    citations: Mapped[int] = mapped_column(Integer, default=0)
+
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.UTC)
+
+    authors: Mapped[list["AuthorORM"]] = relationship(
+        secondary=paper_authors, back_populates="papers"
+    )
+
+

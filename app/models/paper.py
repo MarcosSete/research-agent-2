@@ -39,8 +39,3 @@ class SearchResult(BaseModel):
     total_found: int = 0
 
 
-## o que seria esse BaseModel e porque ele é passado como argumento das classes?
-## Porque as classes não tem os métodos sets e gets?
-## O que seria a class SourceName(str, Enum) é um enum? Porque o enum é passado como argumento
-## O que seria HttpUrl e como eu poderia usa-lo e porque
-## O que seria Field e como eu poderia usa-lo e porque e quais são as opções de uso.

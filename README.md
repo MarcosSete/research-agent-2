@@ -31,23 +31,25 @@ Assim, podemos ver que os agentes atuam de fato, na seção de sumário, recomen
        ├─ scheduler/
        ├─ skills/
      ├─config/
+     ├─docs 
+     ├─migrations
 ```
 
 ## O que foi implementado
-| Módulo                   | status      |
-|--------------------------|-------------|
-| Arxiv Search             | X funcional |
-| SemanticSchola           | X funcional |
-| PapersWithCode           | X funcional       |
-| Official Blogs           |     X funcional        |
-| OpenReview               |     X funcional        |
-| Document Collector       |      X funcional       |
-| Duplicate Detection      |     X funcional        |
+| Módulo                                      | status      |
+|---------------------------------------------|-------------|
+| Arxiv Search                                | X funcional |
+| SemanticSchola                              | X funcional |
+| PapersWithCode                              | X funcional       |
+| Official Blogs                              |     X funcional        |
+| OpenReview                                  |     X funcional        |
+| Document Collector                          |      X funcional       |
+| Duplicate Detection                         |     X funcional        |
 | Relevance Scoring <br/>  (LLM + Embeddings) |    X funcional         |
-| Knowledge Base (Vector DB)     |        X funcional     |
-| Summaries |          X funcional   |
-| Recommendations    |      X funcional       |
-| Weekly Reports    |      X funcional       |
+| Knowledge Base (Vector DB)                  |        X funcional     |
+| Summaries                                   |          X funcional   |
+| Recommendations                             |      X funcional       |
+| Weekly Reports                              |      X funcional       |
 
 
 

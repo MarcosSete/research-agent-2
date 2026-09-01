@@ -1,5 +1,5 @@
 from datetime import date, datetime
-from sqlalchemy import String, Text, Date, DateTime, ForeignKey, Table, Column, Integer,Float, Boolean
+from sqlalchemy import String, Text, Date, DateTime, ForeignKey, Table, Column, Integer, Float, Boolean, func
 from sqlalchemy.orm import Mapped,mapped_column, relationship
 from app.database.base import Base
 
@@ -34,7 +34,7 @@ class PaperORM(Base):
     has_code: Mapped[bool] = mapped_column(Boolean, nullable=True)
     citations: Mapped[int] = mapped_column(Integer, default=0)
 
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.UTC)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=func.now())
 
     authors: Mapped[list["AuthorORM"]] = relationship(
         secondary=paper_authors, back_populates="papers"

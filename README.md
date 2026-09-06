@@ -38,7 +38,7 @@ Assim, podemos ver que os agentes atuam de fato, na seção de sumário, recomen
 ## O que foi implementado
 | Módulo                                      | status      |
 |---------------------------------------------|-------------|
-| Arxiv Search                                | X funcional |
+| Arxiv Search                                | ✅ funcional|
 | SemanticSchola                              | X funcional |
 | PapersWithCode                              | X funcional       |
 | Official Blogs                              |     X funcional        |

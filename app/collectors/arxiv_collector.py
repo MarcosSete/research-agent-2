@@ -5,7 +5,7 @@ from app.collectors.Base import BaseCollector
 from app.models.paper import Paper, Author, SourceName, Source, SearchResult
 
 
-ARXIV_API_URL = "http://export.arxiv.org/api/query"
+ARXIV_API_URL = "https://export.arxiv.org/api/query"
 
 class ArxivCollector(BaseCollector):
     def search(self, query: str, max_results: int = 20) -> SearchResult:
@@ -18,7 +18,7 @@ class ArxivCollector(BaseCollector):
 
         }
 
-        response = httpx.get(ARXIV_API_URL, params=params, timeout = 30.0)
+        response = httpx.get(ARXIV_API_URL, params=params, timeout = 30.0,follow_redirects=True)
         response.raise_for_status() ## lança erro se a api falhar (status 4xx/5xx)
 
         feed = feedparser.parse(response.text)

@@ -2,7 +2,7 @@ from pathlib import Path
 import yaml
 from pydantic import BaseModel, Field
 
-# Sobe 2 níveis a partir deste arquivo (app/config/profile.py -> app/config -> app -> raiz do projeto)
+# Sobe 2 níveis a partir deste arquivo (app/config/research_profile_loader.py -> app/config -> app -> raiz do projeto)
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_PROFILE_PATH = PROJECT_ROOT / "config" / "research_profile.yaml"
 

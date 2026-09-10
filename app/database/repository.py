@@ -60,6 +60,17 @@ class PaperRepository:
 
 
 
+    def get_without_embedding(self) -> list[PaperORM]:
+        """Retorna papers que ainda não tiveram embedding gerado."""
+        return self.session.query(PaperORM).filter_by(has_embedding=False).all()
+
+    def mark_embedded(self, paper_id: int) -> None:
+        """Marca um paper como já processado no Qdrant."""
+        paper = self.session.query(PaperORM).filter_by(id=paper_id).first()
+        if paper:
+            paper.has_embedding = True
+            self.session.commit()
+
 
 
 

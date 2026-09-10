@@ -33,6 +33,7 @@ class PaperORM(Base):
     pdf_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
     has_code: Mapped[bool] = mapped_column(Boolean, nullable=True)
     citations: Mapped[int] = mapped_column(Integer, default=0)
+    has_embedding: Mapped[bool] = mapped_column(Boolean, default=False)
 
     created_at: Mapped[datetime] = mapped_column(DateTime, default=func.now())
 

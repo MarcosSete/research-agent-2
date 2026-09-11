@@ -2,6 +2,8 @@ import math
 from datetime import date
 from app.config.research_profile_loader import ResearchProfile
 
+IGNORED_SIMILARITY_THRESHOLD = 0.35
+
 class PaperScorer:
     def __init__(self, profile: ResearchProfile):
         self.profile = profile
@@ -15,9 +17,15 @@ class PaperScorer:
             author_names: list[str],
             published_date: date | None,
             citations: int,
+            ignored_similarity: float = 0.0,
     ) -> float:
 
-        if self._is_ignored(title, abstract):
+        # Bloqueio por palavra-chave literal (rápido, pega casos óbvios)
+        if self._is_ignored_by_keyword(title, abstract):
+            return 0.0
+
+        # Bloqueio por similaridade semântica (pega casos como "Alzheimer" -> saúde)
+        if ignored_similarity >= IGNORED_SIMILARITY_THRESHOLD:
             return 0.0
 
         interest_score = self._interest_score(title, abstract)
@@ -37,8 +45,7 @@ class PaperScorer:
 
         return round(final_score, 4)
 
-    def _is_ignored(self, title: str, abstract: str) -> bool:
-        """Checagem de exclusão total - roda antes de qualquer outro cálculo."""
+    def _is_ignored_by_keyword(self, title: str, abstract: str) -> bool:
         text = f"{title} {abstract}".lower()
         return any(ignored.lower() in text for ignored in self.profile.ignored)
 

@@ -8,7 +8,6 @@ from app.embeddings.local_service import LocalEmbeddingService
 from app.embeddings.qdrant_store import QdrantStore
 from app.ranking.scorer import PaperScorer
 from app.config.research_profile_loader import load_research_profile
-from app.llm.topic_enrichment import get_or_enrich_topic
 
 # Cache simples em memória - evita recarregar o modelo de embeddings a cada tool call
 _service = None
@@ -39,7 +38,6 @@ def search_and_save_papers(query: str, source: str = "arxiv", max_results: int =
     repo = PaperRepository(session)
     try:
         result = collector.search(query, max_results=max_results)
-        # save() retorna o PaperORM salvo, ou None se já existia (duplicado)
         saved = sum(1 for paper in result.papers if repo.save(paper) is not None)
     finally:
         session.close()
@@ -86,12 +84,18 @@ def get_top_ranked_papers(limit: int = 10) -> str:
     service, store = _get_embedding_backend()
     scorer = PaperScorer(profile, embedding_service=service)
 
-    expanded_interests = [get_or_enrich_topic(topic) for topic in profile.interests]
-    interest_text = ". ".join(expanded_interests)
-    interest_vector = service.embed(interest_text)
+    interest_vector = scorer.interest_vector
+    if interest_vector is None:
+        session.close()
+        return "Nenhum interesse configurado no perfil de pesquisa."
+
     similar_results = store.search_similar(interest_vector, limit=50)
     similarity_by_id = {r["id"]: r["score"] for r in similar_results}
-    vector_by_id = {r["id"]: r.get("vector") for r in similar_results if r.get("vector") is not None}
+    vector_by_id = {
+        r["id"]: r.get("vector")
+        for r in similar_results
+        if r.get("vector") is not None
+    }
 
     papers = (
         session.query(PaperORM)

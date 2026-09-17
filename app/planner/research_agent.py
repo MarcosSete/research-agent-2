@@ -3,6 +3,7 @@ from app.skills.tools import (
     search_and_save_papers,
     generate_pending_embeddings,
     get_top_ranked_papers,
+    save_final_research_report,
 )
 from app.synthesis.research_synthesizer import synthesize_ranked_papers
 from app.config.research_profile_loader import load_research_profile
@@ -34,6 +35,7 @@ def build_research_agent():
             generate_pending_embeddings,
             get_top_ranked_papers,
             synthesize_ranked_papers,
+            save_final_research_report,
         ],
         system_prompt=SYSTEM_PROMPT,
     )
@@ -53,7 +55,8 @@ def run_research_pipeline(topics: list[str] | None = None) -> str:
                 f"Busque papers novos sobre estes temas: {topics_text}. "
                 f"Use arxiv e huggingface como fontes de descoberta. "
                 f"Depois gere os embeddings pendentes, traga o top 10 ranqueado "
-                f"e faça uma síntese técnica desses papers."
+                f"e faça uma síntese técnica desses papers. "
+                f"Por fim, salve a síntese final como relatório."
             ),
         }]
     })

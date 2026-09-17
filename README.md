@@ -18,7 +18,7 @@
 
 ## 📖 Overview
 
-Keeping up with the exponential growth of ML research is impossible. Hundreds of papers are published weekly on Arxiv, Semantic Scholar, and OpenReview. Most researchers rely on basic keyword searches or social media threads, missing critical cross-domain connections.
+Keeping up with the exponential growth of ML research is impossible. Hundreds of papers are published continuously across research platforms and repositories. Most researchers rely on basic keyword searches or social media threads, missing critical cross-domain connections.
 
 The **Research Intelligence System** is a **single-agent research pipeline** that combines deterministic data processing with probabilistic models to automate the research workflow:
 1. **Discover** papers from multiple sources.
@@ -54,7 +54,7 @@ The system is divided into four distinct layers, ensuring separation of concerns
 ## 🧬 Core Philosophy
 
 - **Local-First & Privacy**: Embeddings are generated locally using HuggingFace `SentenceTransformers`. No paper abstracts are sent to external APIs for vectorization.
-- **Zero Vendor Lock-in**: Uses standard SQL (PostgreSQL) and open-source Vector DBs (Qdrant). The LLM provider (DeepSeek) is abstracted behind LangChain, meaning you can switch to Anthropic or OpenAI by changing a single `.env` variable.
+- **Low Coupling**: Uses standard SQL (PostgreSQL) and an open-source vector database (Qdrant). LLM access is centralized in `app/llm/factory.py`.
 - **Deterministic + Probabilistic**: Collection, normalization, persistence, retrieval, and ranking rules are deterministic. Topic enrichment and research synthesis use probabilistic LLMs.
 
 ---
@@ -63,8 +63,8 @@ The system is divided into four distinct layers, ensuring separation of concerns
 
 | Category | Technology | Why we use it |
 | :--- | :--- | :--- |
-| **Orchestration** | `DeepAgents` / `LangChain` | Native support for tool-calling, memory, and multi-step planning. |
-| **LLM Provider** | `DeepSeek` (via `langchain-deepseek`) | Best-in-class reasoning capabilities at a fraction of the cost of GPT-4. |
+| **Orchestration** | `DeepAgents` / `LangChain` | Tool calling and multi-step agent orchestration. |
+| **LLM Provider** | `DeepSeek` (via `langchain-deepseek`) | Fast and reasoning models for enrichment and synthesis. |
 | **Vector DB** | `Qdrant` | Rust-based, blazing fast, and fully self-hostable via Docker. |
 | **Relational DB** | `PostgreSQL` + `SQLAlchemy` | The gold standard for relational data. `Alembic` handles schema migrations. |
 | **Embeddings** | `SentenceTransformers` | Open-source, runs locally on CPU/GPU, no API keys required. |

@@ -4,27 +4,33 @@ from app.skills.tools import (
     generate_pending_embeddings,
     get_top_ranked_papers,
 )
+from app.synthesis.research_synthesizer import synthesize_ranked_papers
 from app.config.research_profile_loader import load_research_profile
-from app.llm.factory import get_fast_llm  # <--- 1. IMPORTAR A FACTORY
+from app.llm.factory import get_fast_llm
+
 
 SYSTEM_PROMPT = """Você é um assistente de pesquisa científica. Seu trabalho, nesta ordem:
 1. Buscar papers novos sobre os temas pedidos, em pelo menos duas fontes diferentes
    (arxiv e semantic_scholar), usando a tool search_and_save_papers para cada tema/fonte.
 2. Gerar embeddings pendentes com generate_pending_embeddings.
 3. Retornar o ranking final com get_top_ranked_papers.
+4. Sintetizar o ranking com synthesize_ranked_papers.
 
-Não pule etapas. Não invente papers - use somente o que as tools retornarem."""
+Não pule etapas. Não invente papers - use somente o que as tools retornarem.
+A síntese deve ser baseada exclusivamente nos dados retornados pelo ranking."""
 
 
 def build_research_agent():
-    # 2. INSTANCIAR O MODELO EXPLICITAMENTE USANDO A FACTORY
-    # Isso garante que a API Key do seu objeto 'settings' seja usada,
-    # sem depender de os.environ ou load_dotenv() na biblioteca.
     llm = get_fast_llm(temperature=0.0)
 
     return create_deep_agent(
-        model=llm,  # <--- 3. PASSAR A INSTÂNCIA DO LLM, NÃO A STRING
-        tools=[search_and_save_papers, generate_pending_embeddings, get_top_ranked_papers],
+        model=llm,
+        tools=[
+            search_and_save_papers,
+            generate_pending_embeddings,
+            get_top_ranked_papers,
+            synthesize_ranked_papers,
+        ],
         system_prompt=SYSTEM_PROMPT,
     )
 
@@ -41,8 +47,8 @@ def run_research_pipeline(topics: list[str] | None = None) -> str:
             "role": "user",
             "content": (
                 f"Busque papers novos sobre estes temas: {topics_text}. "
-                f"Use arxiv e semantic_scholar. Depois gere os embeddings pendentes "
-                f"e me traga o top 10 ranqueado."
+                f"Use arxiv e semantic_scholar. Depois gere os embeddings pendentes, "
+                f"traga o top 10 ranqueado e faça uma síntese técnica desses papers."
             ),
         }]
     })
@@ -50,6 +56,7 @@ def run_research_pipeline(topics: list[str] | None = None) -> str:
     final_message = result["messages"][-1].content
     print(final_message)
     return final_message
+
 
 if __name__ == "__main__":
     run_research_pipeline()

@@ -154,7 +154,12 @@ research-agent-2/
 │   ├── database/       # SQLAlchemy models and repositories
 │   ├── embeddings/     # Vectorization and Qdrant integration
 │   ├── llm/            # LLM factories and topic enrichment
-│   └── ranking/        # Scoring algorithms
+│   ├── ranking/        # Scoring algorithms
+│   ├── models/ 
+│   ├── planner/  
+│   ├── reports/  
+│   ├── scheduler/ 
+│   ├── skills/
 ├── scripts/            # Cron jobs and utility scripts
 ├── migrations/         # Alembic DB migrations
 └── config/             # YAML profiles (research_profile.yaml)

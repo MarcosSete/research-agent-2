@@ -27,3 +27,7 @@ Thumbs.db
 *.egg-info/
 dist/
 build/
+
+
+# Cache de enriquecimento semântico (gerado em runtime)
+config/topic_enrichment_cache.json

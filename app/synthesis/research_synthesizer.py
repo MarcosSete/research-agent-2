@@ -1,6 +1,3 @@
-from datetime import date
-from typing import Any
-
 from pydantic import BaseModel, Field
 
 from app.config.research_profile_loader import load_research_profile
@@ -34,16 +31,6 @@ class ResearchSynthesis(BaseModel):
     papers: list[PaperSynthesis] = Field(default_factory=list)
     comparison: str
     deep_dive_points: list[str] = Field(default_factory=list)
-
-
-def _fallback_synthesis(ranked_papers: str) -> ResearchSynthesis:
-    """Mantém uma saída válida mesmo quando o modelo não retorna estrutura válida."""
-    return ResearchSynthesis(
-        overview="Síntese estruturada indisponível; consulte os papers selecionados.",
-        papers=[],
-        comparison="Não foi possível gerar a comparação estruturada.",
-        deep_dive_points=[],
-    )
 
 
 def synthesize_ranked_papers(ranked_papers: str) -> str:

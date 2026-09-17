@@ -98,7 +98,7 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 
 # Install dependencies
 pip install -r requirements.txt
-`
+```
 
 ### 2. Infrastructure (Docker)
 Start the database and vector store:
@@ -122,13 +122,13 @@ alembic upgrade head
 ### 5. Run the Agent
 Execute the research pipeline manually to test the connection:
 ```bash
-python -m app.agent.research_agent
+python -m app.planner.research_agent
 ```
 
 ### 6. Start the Scheduler
 Leave the cron job running to automatically collect papers every Sunday at 08:00:
 ```bash
-python scripts/run_scheduler.py
+python -m app.scheduler.run_scheduler
 ```
 
 ---

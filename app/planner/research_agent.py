@@ -10,11 +10,15 @@ from app.llm.factory import get_fast_llm
 
 
 SYSTEM_PROMPT = """Você é um assistente de pesquisa científica. Seu trabalho, nesta ordem:
-1. Buscar papers novos sobre os temas pedidos, em pelo menos duas fontes diferentes
-   (arxiv e semantic_scholar), usando a tool search_and_save_papers para cada tema/fonte.
+1. Buscar papers novos sobre os temas pedidos em duas fontes de descoberta:
+   arxiv e huggingface, usando a tool search_and_save_papers para cada tema/fonte.
 2. Gerar embeddings pendentes com generate_pending_embeddings.
 3. Retornar o ranking final com get_top_ranked_papers.
 4. Sintetizar o ranking com synthesize_ranked_papers.
+
+Semantic Scholar está disponível como fonte auxiliar, mas não é obrigatório para a
+etapa de descoberta. Não use Semantic Scholar automaticamente quando arxiv e
+huggingface já tiverem sido consultados.
 
 Não pule etapas. Não invente papers - use somente o que as tools retornarem.
 A síntese deve ser baseada exclusivamente nos dados retornados pelo ranking."""
@@ -47,8 +51,9 @@ def run_research_pipeline(topics: list[str] | None = None) -> str:
             "role": "user",
             "content": (
                 f"Busque papers novos sobre estes temas: {topics_text}. "
-                f"Use arxiv e semantic_scholar. Depois gere os embeddings pendentes, "
-                f"traga o top 10 ranqueado e faça uma síntese técnica desses papers."
+                f"Use arxiv e huggingface como fontes de descoberta. "
+                f"Depois gere os embeddings pendentes, traga o top 10 ranqueado "
+                f"e faça uma síntese técnica desses papers."
             ),
         }]
     })

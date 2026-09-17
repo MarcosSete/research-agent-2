@@ -29,30 +29,17 @@ class PaperScorer:
         if not self.profile.ignored:
             return []
 
-        representations: list[str] = []
-        labels: list[str] = []
-
+        expanded_texts = []
         for topic in self.profile.ignored:
             expanded = get_or_enrich_topic(topic)
-            terms = [
+            expanded_texts.extend(
                 term.strip()
                 for term in expanded.split(",")
                 if term.strip()
-            ]
-
-            # Preserve the original domain and also create contextual
-            # representations. A bare label such as "Healthcare" is often
-            # too abstract for sentence embeddings to match a concrete paper.
-            contextual = (
-                f"Research in {topic}, including applications, methods, "
-                f"datasets and technical topics related to {', '.join(terms)}."
             )
 
-            representations.extend([topic, contextual, *terms])
-            labels.extend([topic, contextual, *terms])
-
-        self._ignored_terms = labels
-        return self.embedding_service.embed_batch(representations)
+        self._ignored_terms = expanded_texts
+        return self.embedding_service.embed_batch(expanded_texts)
 
     def _compute_interest_vector(self) -> list[float] | None:
         if not self.profile.interests:

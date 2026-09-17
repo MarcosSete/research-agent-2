@@ -121,11 +121,23 @@ class PaperScorer:
     def _is_ignored_by_similarity(self, paper_vector: list[float], title: str) -> bool:
         if not self._ignored_vectors:
             return False
-        max_similarity = max(
-            self._cosine_similarity(paper_vector, v) for v in self._ignored_vectors
-        )
+
+        similarities = [
+            self._cosine_similarity(paper_vector, vector)
+            for vector in self._ignored_vectors
+        ]
+        max_similarity = max(similarities)
+
         if self.debug:
-            print(f"[DEBUG] ignored_sim={max_similarity:.4f} | {title[:60]}")
+            ranked = sorted(
+                zip(self._ignored_terms, similarities),
+                key=lambda item: item[1],
+                reverse=True,
+            )
+            print(f"[DEBUG] ignored similarities | {title[:60]}")
+            for term, similarity in ranked[:10]:
+                print(f"[DEBUG]   {similarity:.4f} | {term}")
+
         return max_similarity >= IGNORED_SIMILARITY_THRESHOLD
 
     def _interest_score(

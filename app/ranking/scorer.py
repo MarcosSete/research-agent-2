@@ -27,7 +27,16 @@ class PaperScorer:
     def _compute_ignored_vectors(self) -> list[list[float]]:
         if not self.profile.ignored:
             return []
-        expanded_texts = [get_or_enrich_topic(t) for t in self.profile.ignored]
+
+        expanded_texts = []
+        for topic in self.profile.ignored:
+            expanded = get_or_enrich_topic(topic)
+            expanded_texts.extend(
+                term.strip()
+                for term in expanded.split(",")
+                if term.strip()
+            )
+
         return self.embedding_service.embed_batch(expanded_texts)
 
     def _compute_interest_vector(self) -> list[float] | None:

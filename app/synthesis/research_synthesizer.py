@@ -1,3 +1,5 @@
+import json
+
 from pydantic import BaseModel, Field
 
 from app.config.research_profile_loader import load_research_profile
@@ -50,25 +52,39 @@ Papers selecionados pelo ranking:
 
 {ranked_papers}
 
-Retorne uma síntese estruturada.
-Para cada paper, preencha:
-- title
-- problem
-- method
-- contribution
-- limitations
-- why_read
+Retorne SOMENTE um objeto JSON válido.
 
-Depois preencha:
-- overview
-- comparison
-- deep_dive_points
+Formato obrigatório:
+{{
+  "overview": "visão geral da seleção",
+  "papers": [
+    {{
+      "title": "título exato do paper",
+      "problem": "problema abordado",
+      "method": "método ou ideia principal",
+      "contribution": "principal contribuição",
+      "limitations": "limitações identificáveis no conteúdo fornecido",
+      "why_read": "por que este paper merece leitura"
+    }}
+  ],
+  "comparison": "comparação entre os papers",
+  "deep_dive_points": [
+    "ponto para aprofundamento"
+  ]
+}}
 
 Use somente informações presentes nos papers fornecidos.
+Não adicione campos.
 """
 
-    structured_llm = llm.with_structured_output(ResearchSynthesis)
-    result = structured_llm.invoke(prompt)
+    response = llm.invoke(prompt)
+    content = response.content
+
+    if not isinstance(content, str) or not content.strip():
+        raise ValueError("O LLM retornou conteúdo vazio para a síntese estruturada.")
+
+    data = json.loads(content)
+    result = ResearchSynthesis.model_validate(data)
 
     return render_research_synthesis(result)
 

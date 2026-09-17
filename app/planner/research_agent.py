@@ -5,6 +5,7 @@ from app.skills.tools import (
     get_top_ranked_papers,
 )
 from app.config.research_profile_loader import load_research_profile
+from app.llm.factory import get_fast_llm  # <--- 1. IMPORTAR A FACTORY
 
 SYSTEM_PROMPT = """Você é um assistente de pesquisa científica. Seu trabalho, nesta ordem:
 1. Buscar papers novos sobre os temas pedidos, em pelo menos duas fontes diferentes
@@ -16,8 +17,13 @@ Não pule etapas. Não invente papers - use somente o que as tools retornarem.""
 
 
 def build_research_agent():
+    # 2. INSTANCIAR O MODELO EXPLICITAMENTE USANDO A FACTORY
+    # Isso garante que a API Key do seu objeto 'settings' seja usada,
+    # sem depender de os.environ ou load_dotenv() na biblioteca.
+    llm = get_fast_llm(temperature=0.0)
+
     return create_deep_agent(
-        model="deepseek:deepseek-chat",
+        model=llm,  # <--- 3. PASSAR A INSTÂNCIA DO LLM, NÃO A STRING
         tools=[search_and_save_papers, generate_pending_embeddings, get_top_ranked_papers],
         system_prompt=SYSTEM_PROMPT,
     )
@@ -45,6 +51,6 @@ def run_research_pipeline(topics: list[str] | None = None) -> str:
     print(final_message)
     return final_message
 
-
-if __name__ == "__main__":
-    run_research_pipeline()
+# DICA: Remova o 'if __name__ == "__main__":' daqui.
+# Este arquivo deve ser apenas a biblioteca.
+# A execução deve ficar no seu arquivo 'scripts/run_once.py'

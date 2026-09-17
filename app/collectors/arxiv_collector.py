@@ -7,6 +7,7 @@ from app.models.paper import Paper, Author, SourceName, Source, SearchResult
 
 ARXIV_API_URL = "https://export.arxiv.org/api/query"
 
+
 class ArxivCollector(BaseCollector):
     def search(self, query: str, max_results: int = 20) -> SearchResult:
         params = {
@@ -15,41 +16,73 @@ class ArxivCollector(BaseCollector):
             "max_results": max_results,
             "sortBy": "submittedDate",
             "sortOrder": "descending",
-
         }
 
-        response = httpx.get(ARXIV_API_URL, params=params, timeout = 30.0,follow_redirects=True)
-        response.raise_for_status() ## lança erro se a api falhar (status 4xx/5xx)
+        response = httpx.get(
+            ARXIV_API_URL,
+            params=params,
+            timeout=30.0,
+            follow_redirects=True,
+        )
+        response.raise_for_status()
 
         feed = feedparser.parse(response.text)
-        papers = [self._parse_entry(entry) for entry in feed.entries]
+        papers = [
+            paper
+            for entry in feed.entries
+            if (paper := self._parse_entry(entry)) is not None
+        ]
 
         return SearchResult(
             query=query,
             source=SourceName.ARXIV,
             papers=papers,
             total_found=len(papers),
-
         )
 
-    def _parse_entry(self, entry) -> Paper:
-        authors = [Author(name = a.name) for a in entry.authors]
+    def _parse_entry(self, entry) -> Paper | None:
+        title = entry.get("title")
+        abstract = entry.get("summary")
+        authors_data = entry.get("authors") or []
+        entry_id = entry.get("id")
+
+        # Uma entrada incompleta não deve derrubar toda a coleta.
+        if not title or not abstract or not authors_data or not entry_id:
+            return None
+
+        authors = [
+            Author(name=author["name"])
+            for author in authors_data
+            if author.get("name")
+        ]
+        if not authors:
+            return None
 
         pdf_url = None
-        for link in entry.links:
-            if link.get("title") == "pdf":
-                pdf_url = link.href
+        for link in entry.get("links", []):
+            if link.get("title") == "pdf" and link.get("href"):
+                pdf_url = link["href"]
+                break
 
-        published = datetime.strptime(
-            entry.published, "%Y-%m-%dT%H:%M:%SZ"
-        ).date()
+        published = None
+        published_raw = entry.get("published")
+        if published_raw:
+            try:
+                published = datetime.strptime(
+                    published_raw,
+                    "%Y-%m-%dT%H:%M:%SZ",
+                ).date()
+            except ValueError:
+                pass
 
         return Paper(
-            title = entry.title.replace("\n", " ").strip(),
-            abstract= entry.summary.replace("\n", " ").strip(),
-            authors = authors,
-            source = Source(name=SourceName.ARXIV,url=entry.id ),
+            title=title.replace("\n", " ").strip(),
+            abstract=abstract.replace("\n", " ").strip(),
+            authors=authors,
+            source=Source(
+                name=SourceName.ARXIV,
+                url=entry_id,
+            ),
             published_date=published,
             pdf_url=pdf_url,
-
         )

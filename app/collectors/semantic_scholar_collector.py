@@ -78,7 +78,8 @@ class SemanticScholarCollector(BaseCollector):
             title=item["title"],
             abstract=item["abstract"],
             authors=authors,
-            source=SourceName.SEMANTIC_SCHOLAR,
+            source=Source(
+                name=SourceName.SEMANTIC_SCHOLAR,
                 url=f"https://www.semanticscholar.org/paper/{item['paperId']}",
             ),
             published_date=published,

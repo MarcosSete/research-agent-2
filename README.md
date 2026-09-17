@@ -13,7 +13,6 @@
 ## 🎥 Demonstration
 
 > *[📽️ **Watch the full system walkthrough and agent execution here**]*
-> *(Insert your YouTube/Vimeo video link or embed code here. A 2-3 minute video showing the scheduler triggering, the LLM enriching topics, and the final ranked report being generated is highly recommended.)*
 
 ---
 

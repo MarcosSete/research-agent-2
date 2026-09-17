@@ -33,7 +33,7 @@ The **Research Intelligence System** is not just a scraper. It is a **Research O
 
 *(Architecture diagram generated below. For an editable version, see the Excalidraw instructions at the bottom of this file.)*
 
-![Architecture Diagram](./docs/images/architecture.png)
+![Captura de tela 2026-09-17 152425.png](docs/images/Captura%20de%20tela%202026-09-17%20152425.png)
 
 The system is divided into four distinct layers, ensuring separation of concerns and making it easy to swap out components:
 

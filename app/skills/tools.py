@@ -8,6 +8,7 @@ from app.embeddings.local_service import LocalEmbeddingService
 from app.embeddings.qdrant_store import QdrantStore
 from app.ranking.scorer import PaperScorer
 from app.config.research_profile_loader import load_research_profile
+from app.llm.topic_enrichment import get_or_enrich_topic
 
 # Cache simples em memória - evita recarregar o modelo de embeddings a cada tool call
 _service = None
@@ -85,7 +86,8 @@ def get_top_ranked_papers(limit: int = 10) -> str:
     service, store = _get_embedding_backend()
     scorer = PaperScorer(profile, embedding_service=service)
 
-    interest_text = ". ".join(profile.interests)
+    expanded_interests = [get_or_enrich_topic(topic) for topic in profile.interests]
+    interest_text = ". ".join(expanded_interests)
     interest_vector = service.embed(interest_text)
     similar_results = store.search_similar(interest_vector, limit=50)
     similarity_by_id = {r["id"]: r["score"] for r in similar_results}

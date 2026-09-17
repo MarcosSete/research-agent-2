@@ -1,7 +1,7 @@
 from sentence_transformers import SentenceTransformer
 from app.embeddings.base import BaseEmbeddingService
 
-MODEL_NAME = "all-MiniLM-L6-v2"
+MODEL_NAME = "all-mpnet-base-v2"
 
 class LocalEmbeddingService(BaseEmbeddingService):
     def __init__(self):

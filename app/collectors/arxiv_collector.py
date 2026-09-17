@@ -1,7 +1,7 @@
 import httpx
 import feedparser
 from datetime import datetime
-from app.collectors.Base import BaseCollector
+from app.collectors.base import BaseCollector
 from app.models.paper import Paper, Author, SourceName, Source, SearchResult
 
 

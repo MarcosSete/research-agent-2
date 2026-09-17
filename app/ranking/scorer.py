@@ -1,71 +1,108 @@
+# app/ranking/scorer.py
 import math
 from datetime import date
 from app.config.research_profile_loader import ResearchProfile
+from app.embeddings.base import BaseEmbeddingService
+from app.llm.topic_enrichment import get_or_enrich_topic
 
-IGNORED_SIMILARITY_THRESHOLD = 0.35
+IGNORED_SIMILARITY_THRESHOLD = 0.30
+
 
 class PaperScorer:
-    def __init__(self, profile: ResearchProfile):
+    def __init__(
+        self,
+        profile: ResearchProfile,
+        embedding_service: BaseEmbeddingService,
+        debug: bool = False,
+    ):
         self.profile = profile
+        self.embedding_service = embedding_service
+        self.debug = debug
+        self._ignored_vectors = self._compute_ignored_vectors()
+        self._interest_vector = self._compute_interest_vector()
+
+    def _compute_ignored_vectors(self) -> list[list[float]]:
+        if not self.profile.ignored:
+            return []
+        expanded_texts = [get_or_enrich_topic(t) for t in self.profile.ignored]
+        return self.embedding_service.embed_batch(expanded_texts)
+
+    def _compute_interest_vector(self) -> list[float] | None:
+        if not self.profile.interests:
+            return None
+        expanded_texts = [get_or_enrich_topic(t) for t in self.profile.interests]
+        combined_text = ". ".join(expanded_texts)
+        return self.embedding_service.embed(combined_text)
 
     def score(
-            self,
-            title: str,
-            abstract: str,
-            similarity: float,
-            conference: str | None,
-            author_names: list[str],
-            published_date: date | None,
-            citations: int,
-            ignored_similarity: float = 0.0,
+        self,
+        title: str,
+        abstract: str,
+        similarity: float,
+        conference: str | None,
+        author_names: list[str],
+        published_date: date | None,
+        citations: int,
     ) -> float:
 
-        # Bloqueio por palavra-chave literal (rápido, pega casos óbvios)
         if self._is_ignored_by_keyword(title, abstract):
             return 0.0
 
-        # Bloqueio por similaridade semântica (pega casos como "Alzheimer" -> saúde)
-        if ignored_similarity >= IGNORED_SIMILARITY_THRESHOLD:
+        paper_vector = self.embedding_service.embed(f"{title}. {abstract}")
+
+        if self._is_ignored_by_similarity(paper_vector, title):
             return 0.0
 
-        interest_score = self._interest_score(title, abstract)
+        interest_score = self._interest_score(paper_vector)
         conference_score = self._conference_score(conference)
         author_score = self._author_score(author_names)
         novelty_score = self._novelty_score(published_date)
         citation_score = self._citation_score(citations)
 
         final_score = (
-                0.35 * interest_score +
-                0.20 * similarity +
-                0.15 * conference_score +
-                0.10 * author_score +
-                0.10 * novelty_score +
-                0.10 * citation_score
+            0.35 * interest_score +
+            0.20 * similarity +
+            0.15 * conference_score +
+            0.10 * author_score +
+            0.10 * novelty_score +
+            0.10 * citation_score
         )
 
         return round(final_score, 4)
 
     def _is_ignored_by_keyword(self, title: str, abstract: str) -> bool:
         text = f"{title} {abstract}".lower()
-        return any(ignored.lower() in text for ignored in self.profile.ignored)
+        for ignored_topic in self.profile.ignored:
+            expanded = get_or_enrich_topic(ignored_topic)
+            candidates = [w.strip().lower() for w in expanded.split(",")]
+            if any(candidate in text for candidate in candidates):
+                return True
+        return False
 
-    def _interest_score(self, title: str, abstract: str) -> float:
-        """Combina o texto do paper com os interesses do perfil (busca por palavra-chave)."""
-        text = f"{title} {abstract}".lower()
+    def _is_ignored_by_similarity(self, paper_vector: list[float], title: str) -> bool:
+        if not self._ignored_vectors:
+            return False
+        max_similarity = max(
+            self._cosine_similarity(paper_vector, v) for v in self._ignored_vectors
+        )
+        if self.debug:
+            print(f"[DEBUG] ignored_sim={max_similarity:.4f} | {title[:60]}")
+        return max_similarity >= IGNORED_SIMILARITY_THRESHOLD
 
-        max_priority = max(self.profile.priority.values(), default=100)
-        total = 0.0
-        matches = 0
-
-        for interest, weight in self.profile.priority.items():
-            if interest.lower() in text:
-                total += weight / max_priority
-                matches += 1
-
-        if matches == 0:
+    def _interest_score(self, paper_vector: list[float]) -> float:
+        if self._interest_vector is None:
             return 0.0
+        similarity = self._cosine_similarity(paper_vector, self._interest_vector)
+        return max(similarity, 0.0)
 
-        return min(total / matches, 1.0)
+    @staticmethod
+    def _cosine_similarity(vec_a: list[float], vec_b: list[float]) -> float:
+        dot_product = sum(a * b for a, b in zip(vec_a, vec_b))
+        magnitude_a = math.sqrt(sum(a * a for a in vec_a))
+        magnitude_b = math.sqrt(sum(b * b for b in vec_b))
+        if magnitude_a == 0 or magnitude_b == 0:
+            return 0.0
+        return dot_product / (magnitude_a * magnitude_b)
 
     def _conference_score(self, conference: str | None) -> float:
         if not conference:
@@ -82,14 +119,12 @@ class PaperScorer:
         return 0.2
 
     def _novelty_score(self, published_date: date | None) -> float:
-        """Papers mais recentes pontuam mais. Decaimento exponencial em 365 dias."""
         if not published_date:
             return 0.0
         days_old = (date.today() - published_date).days
         return math.exp(-days_old / 365)
 
     def _citation_score(self, citations: int) -> float:
-        """Normaliza citações usando log, já que a distribuição é bem desigual."""
         if citations <= 0:
             return 0.0
         return min(math.log1p(citations) / math.log1p(1000), 1.0)

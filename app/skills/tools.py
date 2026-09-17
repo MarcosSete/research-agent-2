@@ -4,6 +4,7 @@ from app.database.repository import PaperRepository
 from app.database.models import PaperORM
 from app.collectors.arxiv_collector import ArxivCollector
 from app.collectors.semantic_scholar_collector import SemanticScholarCollector
+from app.collectors.huggingface_collector import HuggingFaceCollector
 from app.embeddings.local_service import LocalEmbeddingService
 from app.embeddings.qdrant_store import QdrantStore
 from app.ranking.scorer import PaperScorer
@@ -24,15 +25,19 @@ def _get_embedding_backend():
 
 @tool
 def search_and_save_papers(query: str, source: str = "arxiv", max_results: int = 10) -> str:
-    """Busca papers sobre um tema numa fonte ('arxiv' ou 'semantic_scholar') e
+    """Busca papers numa fonte ('arxiv', 'huggingface' ou 'semantic_scholar') e
     salva no banco, sem duplicar. Retorna um resumo do resultado."""
     collectors = {
         "arxiv": ArxivCollector(),
+        "huggingface": HuggingFaceCollector(),
         "semantic_scholar": SemanticScholarCollector(),
     }
     collector = collectors.get(source)
     if collector is None:
-        return f"Fonte desconhecida: '{source}'. Use 'arxiv' ou 'semantic_scholar'."
+        return (
+            f"Fonte desconhecida: '{source}'. "
+            "Use 'arxiv', 'huggingface' ou 'semantic_scholar'."
+        )
 
     session = get_session()
     repo = PaperRepository(session)

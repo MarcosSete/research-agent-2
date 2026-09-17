@@ -1,9 +1,3 @@
-Aqui está o README completo, profissional e estruturado para o seu repositório. Ele foi desenhado para atrair recrutadores, engenheiros de ML e contribuidores, destacando a sofisticação da sua arquitetura e o compromisso com o ecossistema Open Source.
-
-Abaixo do README, incluí também as instruções de como obter o diagrama editável no **Excalidraw** e dicas para o seu vídeo.
-
----
-
 # 📄 Copie e cole este conteúdo no seu `README.md`
 
 

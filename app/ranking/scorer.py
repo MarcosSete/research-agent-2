@@ -17,7 +17,6 @@ class PaperScorer:
         self.profile = profile
         self.embedding_service = embedding_service
         self.debug = debug
-        # Só pré-computa vetores se houver serviço de embeddings disponível
         self._ignored_vectors: list[list[float]] = (
             self._compute_ignored_vectors() if embedding_service else []
         )
@@ -34,9 +33,34 @@ class PaperScorer:
     def _compute_interest_vector(self) -> list[float] | None:
         if not self.profile.interests:
             return None
-        expanded_texts = [get_or_enrich_topic(t) for t in self.profile.interests]
-        combined_text = ". ".join(expanded_texts)
-        return self.embedding_service.embed(combined_text)
+
+        expanded_texts = [
+            get_or_enrich_topic(topic)
+            for topic in self.profile.interests
+        ]
+        vectors = self.embedding_service.embed_batch(expanded_texts)
+
+        weighted_vector = [0.0] * self.embedding_service.dimension
+        total_weight = 0.0
+
+        for topic, vector in zip(self.profile.interests, vectors):
+            weight = max(self.profile.priority.get(topic, 1), 0)
+            if weight == 0:
+                continue
+
+            total_weight += weight
+            for index, value in enumerate(vector):
+                weighted_vector[index] += value * weight
+
+        if total_weight == 0:
+            return None
+
+        return [value / total_weight for value in weighted_vector]
+
+    @property
+    def interest_vector(self) -> list[float] | None:
+        """Vetor semântico dos interesses, ponderado por prioridade."""
+        return self._interest_vector
 
     def score(
         self,
@@ -53,8 +77,6 @@ class PaperScorer:
         if self._is_ignored_by_keyword(title, abstract):
             return 0.0
 
-        # Reutiliza o vetor armazenado quando fornecido; só calcula um novo
-        # embedding se o chamador ainda não tiver o vetor do paper.
         if self.embedding_service is not None:
             if paper_vector is None:
                 paper_vector = self.embedding_service.embed(f"{title}. {abstract}")
@@ -103,12 +125,10 @@ class PaperScorer:
         abstract: str,
         paper_vector: list[float] | None,
     ) -> float:
-        # Caminho semântico: compara o vetor do paper com o vetor dos interesses
         if paper_vector is not None and self._interest_vector is not None:
             similarity = self._cosine_similarity(paper_vector, self._interest_vector)
             return max(similarity, 0.0)
 
-        # Fallback sem embeddings: busca por palavra-chave com pesos de prioridade
         text = f"{title} {abstract}".lower()
         max_priority = max(self.profile.priority.values(), default=100)
         total = 0.0

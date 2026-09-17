@@ -17,6 +17,7 @@ class PaperScorer:
         self.profile = profile
         self.embedding_service = embedding_service
         self.debug = debug
+        self._ignored_terms: list[str] = []
         self._ignored_vectors: list[list[float]] = (
             self._compute_ignored_vectors() if embedding_service else []
         )
@@ -37,6 +38,7 @@ class PaperScorer:
                 if term.strip()
             )
 
+        self._ignored_terms = expanded_texts
         return self.embedding_service.embed_batch(expanded_texts)
 
     def _compute_interest_vector(self) -> list[float] | None:

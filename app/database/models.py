@@ -1,5 +1,5 @@
 from datetime import date, datetime
-from sqlalchemy import String, Text, Date, DateTime, ForeignKey, Table, Column, Integer, Float, Boolean, func
+from sqlalchemy import String, Text, Date, DateTime, ForeignKey, Table, Column, Integer, Boolean, func
 from sqlalchemy.orm import Mapped,mapped_column, relationship
 from app.database.base import Base
 
@@ -27,11 +27,11 @@ class PaperORM(Base):
     abstract: Mapped[str] = mapped_column(Text)
 
     source_name: Mapped[str] = mapped_column(String(50), index = True)
-    source_url: Mapped[str] = mapped_column(String(500), unique=True) ## garanti que os papers tenha somente uma url fonte, assim evitando duplicação.
+    source_url: Mapped[str] = mapped_column(String(500), unique=True) ## garante que os papers tenham somente uma URL fonte, assim evitando duplicação.
     published_date: Mapped[date | None] = mapped_column(Date, nullable=True)
     conference: Mapped[str | None] = mapped_column(String(100), nullable=True)
     pdf_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
-    has_code: Mapped[bool] = mapped_column(Boolean, nullable=True)
+    has_code: Mapped[bool | None] = mapped_column(Boolean, nullable=True)
     citations: Mapped[int] = mapped_column(Integer, default=0)
     has_embedding: Mapped[bool] = mapped_column(Boolean, default=False)
 

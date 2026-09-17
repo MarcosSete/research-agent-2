@@ -35,16 +35,23 @@ class QdrantStore:
 
         self.client.upsert(collection_name= COLLECTION_NAME, points=[point])
 
-    def search_similar(self, vector: list[float], limit: int =5) -> list[dict]:
-        """Busca os papers mais parecidos com o vetor fornecido."""
+    def search_similar(self, vector: list[float], limit: int = 5) -> list[dict]:
+        """Busca os papers mais parecidos e retorna também seus vetores armazenados."""
         results = self.client.query_points(
-            collection_name= COLLECTION_NAME,
-            query= vector,
-            limit= limit
+            collection_name=COLLECTION_NAME,
+            query=vector,
+            limit=limit,
+            with_vectors=True,
         ).points
 
         return [
-            {"id": r.id, "score": r.score, "payload": r.payload} for r in results
+            {
+                "id": r.id,
+                "score": r.score,
+                "payload": r.payload,
+                "vector": r.vector,
+            }
+            for r in results
         ]
 
     def count(self) -> int:

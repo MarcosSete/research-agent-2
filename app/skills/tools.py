@@ -9,6 +9,7 @@ from app.embeddings.local_service import LocalEmbeddingService
 from app.embeddings.qdrant_store import QdrantStore
 from app.ranking.scorer import PaperScorer
 from app.config.research_profile_loader import load_research_profile
+from app.reports.report_writer import save_research_report
 
 # Cache simples em memória - evita recarregar o modelo de embeddings a cada tool call
 _service = None
@@ -147,3 +148,14 @@ def get_top_ranked_papers(limit: int = 10) -> str:
 
     session.close()
     return "\n".join(lines)
+
+
+
+@tool
+def save_final_research_report(report: str) -> str:
+    """Salva a síntese final da pesquisa em Markdown e JSON."""
+    markdown_path, json_path = save_research_report(report)
+    return (
+        f"Relatório salvo com sucesso. "
+        f"Markdown: {markdown_path}. JSON: {json_path}."
+    )

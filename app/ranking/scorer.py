@@ -47,18 +47,19 @@ class PaperScorer:
         author_names: list[str],
         published_date: date | None,
         citations: int,
+        paper_vector: list[float] | None = None,
     ) -> float:
 
         if self._is_ignored_by_keyword(title, abstract):
             return 0.0
 
-        # Bloqueio por similaridade semântica (só se embeddings disponíveis)
+        # Reutiliza o vetor armazenado quando fornecido; só calcula um novo
+        # embedding se o chamador ainda não tiver o vetor do paper.
         if self.embedding_service is not None:
-            paper_vector = self.embedding_service.embed(f"{title}. {abstract}")
+            if paper_vector is None:
+                paper_vector = self.embedding_service.embed(f"{title}. {abstract}")
             if self._is_ignored_by_similarity(paper_vector, title):
                 return 0.0
-        else:
-            paper_vector = None
 
         interest_score = self._interest_score(title, abstract, paper_vector)
         conference_score = self._conference_score(conference)

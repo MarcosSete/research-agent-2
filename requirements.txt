@@ -1,2 +1,14 @@
-
 pydantic
+pydantic-settings
+pyyaml
+httpx
+feedparser
+sqlalchemy
+psycopg2-binary
+alembic
+qdrant-client
+sentence-transformers
+langchain-core
+langchain-deepseek
+deepagents
+apscheduler

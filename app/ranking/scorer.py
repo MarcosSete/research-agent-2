@@ -1,4 +1,3 @@
-# app/ranking/scorer.py
 import math
 from datetime import date
 from app.config.research_profile_loader import ResearchProfile
@@ -12,14 +11,19 @@ class PaperScorer:
     def __init__(
         self,
         profile: ResearchProfile,
-        embedding_service: BaseEmbeddingService,
+        embedding_service: BaseEmbeddingService | None = None,
         debug: bool = False,
     ):
         self.profile = profile
         self.embedding_service = embedding_service
         self.debug = debug
-        self._ignored_vectors = self._compute_ignored_vectors()
-        self._interest_vector = self._compute_interest_vector()
+        # Só pré-computa vetores se houver serviço de embeddings disponível
+        self._ignored_vectors: list[list[float]] = (
+            self._compute_ignored_vectors() if embedding_service else []
+        )
+        self._interest_vector: list[float] | None = (
+            self._compute_interest_vector() if embedding_service else None
+        )
 
     def _compute_ignored_vectors(self) -> list[list[float]]:
         if not self.profile.ignored:
@@ -48,12 +52,15 @@ class PaperScorer:
         if self._is_ignored_by_keyword(title, abstract):
             return 0.0
 
-        paper_vector = self.embedding_service.embed(f"{title}. {abstract}")
+        # Bloqueio por similaridade semântica (só se embeddings disponíveis)
+        if self.embedding_service is not None:
+            paper_vector = self.embedding_service.embed(f"{title}. {abstract}")
+            if self._is_ignored_by_similarity(paper_vector, title):
+                return 0.0
+        else:
+            paper_vector = None
 
-        if self._is_ignored_by_similarity(paper_vector, title):
-            return 0.0
-
-        interest_score = self._interest_score(paper_vector)
+        interest_score = self._interest_score(title, abstract, paper_vector)
         conference_score = self._conference_score(conference)
         author_score = self._author_score(author_names)
         novelty_score = self._novelty_score(published_date)
@@ -75,7 +82,7 @@ class PaperScorer:
         for ignored_topic in self.profile.ignored:
             expanded = get_or_enrich_topic(ignored_topic)
             candidates = [w.strip().lower() for w in expanded.split(",")]
-            if any(candidate in text for candidate in candidates):
+            if any(candidate and candidate in text for candidate in candidates):
                 return True
         return False
 
@@ -89,11 +96,29 @@ class PaperScorer:
             print(f"[DEBUG] ignored_sim={max_similarity:.4f} | {title[:60]}")
         return max_similarity >= IGNORED_SIMILARITY_THRESHOLD
 
-    def _interest_score(self, paper_vector: list[float]) -> float:
-        if self._interest_vector is None:
+    def _interest_score(
+        self,
+        title: str,
+        abstract: str,
+        paper_vector: list[float] | None,
+    ) -> float:
+        # Caminho semântico: compara o vetor do paper com o vetor dos interesses
+        if paper_vector is not None and self._interest_vector is not None:
+            similarity = self._cosine_similarity(paper_vector, self._interest_vector)
+            return max(similarity, 0.0)
+
+        # Fallback sem embeddings: busca por palavra-chave com pesos de prioridade
+        text = f"{title} {abstract}".lower()
+        max_priority = max(self.profile.priority.values(), default=100)
+        total = 0.0
+        matches = 0
+        for interest, weight in self.profile.priority.items():
+            if interest.lower() in text:
+                total += weight / max_priority
+                matches += 1
+        if matches == 0:
             return 0.0
-        similarity = self._cosine_similarity(paper_vector, self._interest_vector)
-        return max(similarity, 0.0)
+        return min(total / matches, 1.0)
 
     @staticmethod
     def _cosine_similarity(vec_a: list[float], vec_b: list[float]) -> float:

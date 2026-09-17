@@ -31,3 +31,7 @@ build/
 
 # Cache de enriquecimento semântico (gerado em runtime)
 config/topic_enrichment_cache.json
+
+# Relatórios gerados em runtime
+reports/*.md
+reports/*.json

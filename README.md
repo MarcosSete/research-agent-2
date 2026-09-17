@@ -1,6 +1,3 @@
-# 📄 Copie e cole este conteúdo no seu `README.md`
-
-
 # 🧠 Research Intelligence System
 
 > **An autonomous, agentic pipeline for discovering, enriching, and ranking cutting-edge machine learning papers.**

@@ -34,7 +34,6 @@ The **Research Intelligence System** is not just a scraper. It is a **Research O
 *(Architecture diagram generated below. For an editable version, see the Excalidraw instructions at the bottom of this file.)*
 
 ![Captura de tela 2026-09-17 152425.png](docs/images/Captura%20de%20tela%202026-09-17%20152425.png)
-
 The system is divided into four distinct layers, ensuring separation of concerns and making it easy to swap out components:
 
 1. **Ingestion Layer**: Connectors for Arxiv and Semantic Scholar. Normalizes data into a unified `Paper` Pydantic model.

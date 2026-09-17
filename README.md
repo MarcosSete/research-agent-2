@@ -1,6 +1,6 @@
 # 🧠 Research Intelligence System
 
-> **An autonomous, agentic pipeline for discovering, enriching, and ranking cutting-edge machine learning papers.**
+> **An autonomous, agentic pipeline for discovering, enriching, ranking, and synthesizing machine learning research papers.**
 
 ![Python](https://img.shields.io/badge/Python-3.11%2B-blue?logo=python&logoColor=white) 
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15%2B-336791?logo=postgresql&logoColor=white)
@@ -20,12 +20,15 @@
 
 Keeping up with the exponential growth of ML research is impossible. Hundreds of papers are published weekly on Arxiv, Semantic Scholar, and OpenReview. Most researchers rely on basic keyword searches or social media threads, missing critical cross-domain connections.
 
-The **Research Intelligence System** is not just a scraper. It is a **Research Orchestrator**. It combines deterministic data pipelines with probabilistic Large Language Models to:
-1. **Collect** papers from multiple sources without duplication.
-2. **Enrich** topics dynamically using LLMs (expanding "RL" to "PPO, DreamerV3, Reward Shaping...").
-3. **Embed** and store papers in a local, open-source vector database.
-4. **Rank** papers using a hybrid scoring system (Semantic Similarity + Novelty + Author Prestige).
-5. **Orchestrate** the entire workflow via an autonomous agent powered by DeepSeek.
+The **Research Intelligence System** is a **single-agent research pipeline** that combines deterministic data processing with probabilistic models to automate the research workflow:
+1. **Discover** papers from multiple sources.
+2. **Normalize and persist** paper metadata.
+3. **Enrich** research topics using an LLM.
+4. **Generate** local embeddings for semantic retrieval.
+5. **Rank** papers according to the research profile.
+6. **Synthesize** selected papers into a technical research summary.
+
+The current implementation uses a **single DeepAgents agent with specialized tools**, rather than a multi-agent architecture.
 
 ---
 
@@ -36,14 +39,15 @@ The **Research Intelligence System** is not just a scraper. It is a **Research O
 ![Captura de tela 2026-09-17 152425.png](docs/images/Captura%20de%20tela%202026-09-17%20152425.png)
 The system is divided into four distinct layers, ensuring separation of concerns and making it easy to swap out components:
 
-1. **Ingestion Layer**: Connectors for Arxiv and Semantic Scholar. Normalizes data into a unified `Paper` Pydantic model.
+1. **Discovery Layer**: Collectors for Arxiv, Semantic Scholar, and Hugging Face Papers normalize data into a unified `Paper` Pydantic model.
 2. **Processing Layer**: 
-   - *LLM Enrichment*: Uses DeepSeek to dynamically expand research topics into rich taxonomies, cached locally to save API costs.
+   - *LLM Enrichment*: Uses DeepSeek to dynamically expand research topics into related concepts.
+   - *Ignored-topic filtering*: Enriched ignored topics are represented as independent semantic terms for similarity checks.
    - *Embedding Service*: Uses `SentenceTransformers` (local, offline, open-source) to generate dense vector representations of abstracts.
 3. **Storage Layer**:
-   - *PostgreSQL*: Relational storage for paper metadata, authors, and reading history.
+   - *PostgreSQL*: Relational storage for paper and author metadata.
    - *Qdrant*: High-performance vector database for semantic search and similarity checks.
-4. **Agentic Layer**: The `DeepAgents` core acts as the brain, deciding when to search, when to generate embeddings, and how to synthesize the final weekly report.
+4. **Agentic Layer**: A single `DeepAgents` agent coordinates search, embedding generation, ranking, and technical synthesis through specialized tools.
 
 ---
 
@@ -51,7 +55,7 @@ The system is divided into four distinct layers, ensuring separation of concerns
 
 - **Local-First & Privacy**: Embeddings are generated locally using HuggingFace `SentenceTransformers`. No paper abstracts are sent to external APIs for vectorization.
 - **Zero Vendor Lock-in**: Uses standard SQL (PostgreSQL) and open-source Vector DBs (Qdrant). The LLM provider (DeepSeek) is abstracted behind LangChain, meaning you can switch to Anthropic or OpenAI by changing a single `.env` variable.
-- **Deterministic + Probabilistic**: Data collection and storage are deterministic (Python/SQL). Ranking and synthesis are probabilistic (LLM/Embeddings). This hybrid approach ensures reliability while maintaining "intelligence".
+- **Deterministic + Probabilistic**: Collection, normalization, persistence, retrieval, and ranking rules are deterministic. Topic enrichment and research synthesis use probabilistic LLMs.
 
 ---
 
@@ -146,19 +150,17 @@ This project is designed to be a collaborative effort. If you want to contribute
 ```text
 research-agent-2/
 ├── app/
-│   ├── agent/          # DeepAgents tools and orchestration
-│   ├── collectors/     # API integrations (Arxiv, Semantic Scholar)
-│   ├── config/         # Pydantic settings and profile loader
-│   ├── database/       # SQLAlchemy models and repositories
-│   ├── embeddings/     # Vectorization and Qdrant integration
-│   ├── llm/            # LLM factories and topic enrichment
-│   ├── ranking/        # Scoring algorithms
-│   ├── models/ 
-│   ├── planner/  
-│   ├── reports/  
-│   ├── scheduler/ 
-│   ├── skills/
-├── scripts/            # Cron jobs and utility scripts
+│   ├── collectors/     # Arxiv, Semantic Scholar, Hugging Face
+│   ├── config/         # Application settings and research profile loader
+│   ├── database/       # SQLAlchemy models, repository, session
+│   ├── embeddings/     # Local embeddings and Qdrant integration
+│   ├── llm/            # LLM factory and topic enrichment
+│   ├── models/         # Domain models
+│   ├── planner/        # Single-agent research orchestration
+│   ├── ranking/        # Paper scoring
+│   ├── skills/         # Agent tools
+│   └── synthesis/      # Technical research synthesis
+├── scripts/            # Local execution and utility scripts
 ├── migrations/         # Alembic DB migrations
 └── config/             # YAML profiles (research_profile.yaml)
 ```

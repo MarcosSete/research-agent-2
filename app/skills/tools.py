@@ -78,7 +78,7 @@ def generate_pending_embeddings() -> str:
 @tool
 def get_top_ranked_papers(limit: int = 10) -> str:
     """Retorna os papers mais relevantes do banco, ranqueados de acordo com
-    o perfil de interesses do usuário."""
+    o perfil de interesses do usuário, com dados suficientes para síntese."""
     session = get_session()
     profile = load_research_profile()
     service, store = _get_embedding_backend()
@@ -119,10 +119,26 @@ def get_top_ranked_papers(limit: int = 10) -> str:
         ranked.append((score, paper))
 
     ranked.sort(key=lambda x: x[0], reverse=True)
-    session.close()
 
     if not ranked:
+        session.close()
         return "Nenhum paper ranqueado encontrado."
 
-    lines = [f"{score:.4f} | {paper.title}" for score, paper in ranked[:limit]]
+    selected = ranked[:limit]
+    lines = []
+    for position, (score, paper) in enumerate(selected, start=1):
+        authors = ", ".join(a.name for a in paper.authors) or "Não informado"
+        lines.extend([
+            f"## {position}. {paper.title}",
+            f"Score: {score:.4f}",
+            f"Autores: {authors}",
+            f"Publicado: {paper.published_date or 'Não informado'}",
+            f"Conferência: {paper.conference or 'Não informado'}",
+            f"Citações: {paper.citations}",
+            f"Resumo: {paper.abstract}",
+            f"Fonte: {paper.source_url}",
+            "",
+        ])
+
+    session.close()
     return "\n".join(lines)

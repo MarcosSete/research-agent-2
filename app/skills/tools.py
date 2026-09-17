@@ -91,6 +91,7 @@ def get_top_ranked_papers(limit: int = 10) -> str:
     interest_vector = service.embed(interest_text)
     similar_results = store.search_similar(interest_vector, limit=50)
     similarity_by_id = {r["id"]: r["score"] for r in similar_results}
+    vector_by_id = {r["id"]: r.get("vector") for r in similar_results if r.get("vector") is not None}
 
     papers = (
         session.query(PaperORM)
@@ -109,6 +110,7 @@ def get_top_ranked_papers(limit: int = 10) -> str:
             author_names=author_names,
             published_date=paper.published_date,
             citations=paper.citations,
+            paper_vector=vector_by_id.get(paper.id),
         )
         ranked.append((score, paper))
 

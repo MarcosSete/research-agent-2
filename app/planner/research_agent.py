@@ -51,6 +51,5 @@ def run_research_pipeline(topics: list[str] | None = None) -> str:
     print(final_message)
     return final_message
 
-# DICA: Remova o 'if __name__ == "__main__":' daqui.
-# Este arquivo deve ser apenas a biblioteca.
-# A execução deve ficar no seu arquivo 'scripts/run_once.py'
+if __name__ == "__main__":
+    run_research_pipeline()

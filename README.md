@@ -167,14 +167,6 @@ research-agent-2/
 
 ---
 
-## 🛣️ Roadmap
-
-- [ ] **Multi-Agent Swarm**: Split the monolithic agent into specialized sub-agents (e.g., "RL Agent", "NLP Agent").
-- [ ] **RAG Integration**: Allow the agent to "read" the full PDF of top-ranked papers using PyMuPDF and summarize the methodology.
-- [ ] **Notion/Obsidian Sync**: Automatically push the weekly digest to your personal knowledge base.
-- [ ] **Web UI**: A lightweight dashboard to browse, filter, and mark papers as "Read".
-
----
 
 ## 📄 License
 

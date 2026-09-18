@@ -64,7 +64,15 @@ def synthesize_ranked_papers(ranked_papers: str) -> str:
         return "No papers available for synthesis."
 
     ranking_data = json.loads(ranked_papers)
-    ranked = [RankedPaper.model_validate(item) for item in ranking_data.get("papers", [])]
+
+    if isinstance(ranking_data, dict):
+        paper_items = ranking_data.get("papers", [])
+    elif isinstance(ranking_data, list):
+        paper_items = ranking_data
+    else:
+        raise ValueError("Ranking data must be a JSON object or a JSON list.")
+
+    ranked = [RankedPaper.model_validate(item) for item in paper_items]
 
     if not ranked:
         return "No papers available for synthesis."
@@ -124,7 +132,7 @@ Return one item in "papers" for each provided paper.
 Use only information present in the provided abstracts.
 Do not add fields.
 """
- 
+
     response = llm.invoke(prompt)
     content = response.content
 

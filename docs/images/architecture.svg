@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1120" viewBox="0 0 1600 1120">
+<defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#adb5bd"/></marker>
+<style>
+.title{font:26px sans-serif;fill:#e6edf3}.legend{font:13px sans-serif;fill:#8b949e}.section{font:13px sans-serif;fill:#8b949e;font-weight:600}.node{font:12px sans-serif;fill:#e6edf3}.small{font:11px sans-serif;fill:#8b949e}
+</style></defs>
+<rect width="1600" height="1120" fill="#0d1117"/>
+<text x="40" y="38" class="title">Research Intelligence System — Current Architecture</text>
+<text x="40" y="62" class="legend">repo: MarcosSete/research-agent-2 | solid = implemented | dashed = future</text>
+
+<rect x="40" y="95" width="1520" height="250" rx="12" fill="#111827" stroke="#30363d" stroke-width="2"/><text x="58" y="119" class="section">ORCHESTRATION</text>
+<rect x="620" y="130" width="360" height="58" rx="12" fill="#173a5e" stroke="#74c0fc" stroke-width="2"/><text x="638" y="154" class="section"></text><text x="800" y="178" text-anchor="middle" class="node">APScheduler</text><text x="800" y="196" text-anchor="middle" class="node">app/scheduler/run_scheduler.py</text>
+<rect x="500" y="220" width="600" height="72" rx="12" fill="#2f2657" stroke="#b197fc" stroke-width="2"/><text x="518" y="244" class="section"></text><text x="800" y="268" text-anchor="middle" class="node">DeepAgents Research Agent</text><text x="800" y="286" text-anchor="middle" class="node">app/planner/research_agent.py • single-agent orchestration</text>
+
+<rect x="160" y="365" width="1280" height="120" rx="12" fill="#171717" stroke="#30363d" stroke-width="2"/><text x="178" y="389" class="section">AGENT TOOLS</text>
+<rect x="185" y="410" width="220" height="52" rx="12" fill="#2f2657" stroke="#b197fc" stroke-width="2"/><text x="203" y="434" class="section"></text><text x="295" y="458" text-anchor="middle" class="node">search_and_save_papers</text>
+<rect x="430" y="410" width="220" height="52" rx="12" fill="#2f2657" stroke="#b197fc" stroke-width="2"/><text x="448" y="434" class="section"></text><text x="540" y="458" text-anchor="middle" class="node">generate_pending_embeddings</text>
+<rect x="675" y="410" width="220" height="52" rx="12" fill="#2f2657" stroke="#b197fc" stroke-width="2"/><text x="693" y="434" class="section"></text><text x="785" y="458" text-anchor="middle" class="node">get_top_ranked_papers</text>
+<rect x="920" y="410" width="220" height="52" rx="12" fill="#2f2657" stroke="#b197fc" stroke-width="2"/><text x="938" y="434" class="section"></text><text x="1030" y="458" text-anchor="middle" class="node">synthesize_ranked_papers</text>
+<rect x="1165" y="410" width="220" height="52" rx="12" fill="#2f2657" stroke="#b197fc" stroke-width="2"/><text x="1183" y="434" class="section"></text><text x="1275" y="458" text-anchor="middle" class="node">save_final_research_report</text>
+
+<rect x="40" y="510" width="480" height="220" rx="12" fill="#102a22" stroke="#2f9e44" stroke-width="2"/><text x="58" y="534" class="section">DISCOVERY</text>
+<rect x="65" y="565" width="185" height="58" rx="12" fill="#173a2a" stroke="#69db7c" stroke-width="2"/><text x="83" y="589" class="section"></text><text x="157.5" y="613" text-anchor="middle" class="node">ArXiv Collector</text><text x="157.5" y="631" text-anchor="middle" class="node">app/collectors/</text>
+<rect x="265" y="565" width="185" height="58" rx="12" fill="#173a2a" stroke="#69db7c" stroke-width="2"/><text x="283" y="589" class="section"></text><text x="357.5" y="613" text-anchor="middle" class="node">Hugging Face Papers</text><text x="357.5" y="631" text-anchor="middle" class="node">implemented</text>
+<rect x="165" y="645" width="185" height="58" rx="12" fill="#173a2a" stroke="#69db7c" stroke-width="2"/><text x="183" y="669" class="section"></text><text x="257.5" y="693" text-anchor="middle" class="node">Semantic Scholar</text><text x="257.5" y="711" text-anchor="middle" class="node">auxiliary source</text>
+
+<rect x="550" y="510" width="480" height="220" rx="12" fill="#28251a" stroke="#fcc419" stroke-width="2"/><text x="568" y="534" class="section">PROCESSING</text>
+<rect x="575" y="565" width="185" height="58" rx="12" fill="#3b3518" stroke="#ffe066" stroke-width="2"/><text x="593" y="589" class="section"></text><text x="667.5" y="613" text-anchor="middle" class="node">SentenceTransformers</text><text x="667.5" y="631" text-anchor="middle" class="node">local embeddings</text>
+<rect x="775" y="565" width="185" height="58" rx="12" fill="#3b3518" stroke="#ffe066" stroke-width="2"/><text x="793" y="589" class="section"></text><text x="867.5" y="613" text-anchor="middle" class="node">Topic enrichment</text><text x="867.5" y="631" text-anchor="middle" class="node">DeepSeek</text>
+<rect x="675" y="645" width="185" height="58" rx="12" fill="#3b3518" stroke="#ffe066" stroke-width="2"/><text x="693" y="669" class="section"></text><text x="767.5" y="693" text-anchor="middle" class="node">research_profile.yaml</text><text x="767.5" y="711" text-anchor="middle" class="node">preferences</text>
+
+<rect x="1060" y="510" width="500" height="220" rx="12" fill="#202a3a" stroke="#74c0fc" stroke-width="2"/><text x="1078" y="534" class="section">PERSISTENCE &amp; RETRIEVAL</text>
+<rect x="1085" y="565" width="200" height="58" rx="12" fill="#173a5e" stroke="#74c0fc" stroke-width="2"/><text x="1103" y="589" class="section"></text><text x="1185" y="613" text-anchor="middle" class="node">PostgreSQL</text><text x="1185" y="631" text-anchor="middle" class="node">papers • authors • metadata</text>
+<rect x="1305" y="565" width="200" height="58" rx="12" fill="#173a5e" stroke="#74c0fc" stroke-width="2"/><text x="1323" y="589" class="section"></text><text x="1405" y="613" text-anchor="middle" class="node">Qdrant</text><text x="1405" y="631" text-anchor="middle" class="node">paper vectors • similarity</text>
+<text x="1310" y="670" class="small" text-anchor="middle">PaperRepository / SQLAlchemy • persistence + deduplication</text>
+
+<rect x="250" y="755" width="620" height="180" rx="12" fill="#2a2034" stroke="#d0bfff" stroke-width="2"/><text x="268" y="779" class="section">RANKING</text>
+<rect x="290" y="810" width="540" height="82" rx="12" fill="#3b2d4d" stroke="#d0bfff" stroke-width="2"/><text x="308" y="834" class="section"></text><text x="560" y="858" text-anchor="middle" class="node">PaperScorer</text><text x="560" y="876" text-anchor="middle" class="node">interest 35% • similarity 20% • conference 15%</text><text x="560" y="894" text-anchor="middle" class="node">author 10% • novelty 10% • citations 10%</text>
+
+<rect x="910" y="755" width="650" height="180" rx="12" fill="#2a2034" stroke="#d0bfff" stroke-width="2"/><text x="928" y="779" class="section">SYNTHESIS &amp; DELIVERY</text>
+<rect x="950" y="810" width="250" height="82" rx="12" fill="#3b2d4d" stroke="#d0bfff" stroke-width="2"/><text x="968" y="834" class="section"></text><text x="1075" y="858" text-anchor="middle" class="node">Research Synthesis</text><text x="1075" y="876" text-anchor="middle" class="node">DeepSeek smart model</text>
+<rect x="1220" y="810" width="300" height="82" rx="12" fill="#3b2d4d" stroke="#d0bfff" stroke-width="2"/><text x="1238" y="834" class="section"></text><text x="1370" y="858" text-anchor="middle" class="node">app/reports/report_writer.py</text><text x="1370" y="876" text-anchor="middle" class="node">Markdown + JSON reports</text>
+
+<rect x="500" y="965" width="650" height="90" rx="12" fill="none" stroke="#8b949e" stroke-width="2" stroke-dasharray="8 6"/><text x="518" y="989" class="section"></text><text x="825" y="1013" text-anchor="middle" class="node">Future contribution: UI / Dashboard</text><text x="825" y="1031" text-anchor="middle" class="node">FastAPI + Streamlit • profile • ranking • reports • pipeline status</text>
+
+<line x1="800" y1="188" x2="800" y2="220" stroke="#adb5bd" stroke-width="2" marker-end="url(#arrow)"/><line x1="800" y1="292" x2="800" y2="365" stroke="#adb5bd" stroke-width="2" marker-end="url(#arrow)"/>
+<line x1="295" y1="462" x2="295" y2="565" stroke="#adb5bd" stroke-width="2" marker-end="url(#arrow)"/><line x1="540" y1="462" x2="540" y2="565" stroke="#adb5bd" stroke-width="2" marker-end="url(#arrow)"/><line x1="785" y1="462" x2="785" y2="565" stroke="#adb5bd" stroke-width="2" marker-end="url(#arrow)"/><line x1="1030" y1="462" x2="1030" y2="565" stroke="#adb5bd" stroke-width="2" marker-end="url(#arrow)"/><line x1="1275" y1="462" x2="1275" y2="565" stroke="#adb5bd" stroke-width="2" marker-end="url(#arrow)"/>
+<line x1="250" y1="703" x2="545" y2="810" stroke="#adb5bd" stroke-width="2" marker-end="url(#arrow)"/><line x1="675" y1="703" x2="675" y2="810" stroke="#adb5bd" stroke-width="2" marker-end="url(#arrow)"/><line x1="1260" y1="703" x2="1260" y2="810" stroke="#adb5bd" stroke-width="2" marker-end="url(#arrow)"/>
+<line x1="560" y1="892" x2="560" y2="755" stroke="#adb5bd" stroke-width="2" marker-end="url(#arrow)"/><line x1="1230" y1="892" x2="1230" y2="755" stroke="#adb5bd" stroke-width="2" marker-end="url(#arrow)"/>
+<line x1="870" y1="895" x2="950" y2="851" stroke="#adb5bd" stroke-width="2" marker-end="url(#arrow)"/><line x1="1200" y1="851" x2="1220" y2="851" stroke="#adb5bd" stroke-width="2" marker-end="url(#arrow)"/>
+<line x1="800" y1="292" x2="265" y2="565" stroke="#adb5bd" stroke-width="2" marker-end="url(#arrow)"/>
+<line x1="810" y1="935" x2="810" y2="965" stroke="#adb5bd" stroke-width="2" marker-end="url(#arrow)" stroke-dasharray="8 6"/>
+
+</svg>

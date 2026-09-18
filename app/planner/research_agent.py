@@ -4,8 +4,8 @@ from app.skills.tools import (
     search_and_save_papers,
     generate_pending_embeddings,
     get_top_ranked_papers,
-    save_final_research_report,
 )
+from app.reports.report_writer import save_research_report
 from app.synthesis.research_synthesizer import synthesize_ranked_papers
 from app.config.research_profile_loader import load_research_profile
 from app.llm.factory import get_fast_llm
@@ -52,7 +52,6 @@ def build_research_agent():
             generate_pending_embeddings,
             get_top_ranked_papers,
             synthesize_ranked_papers,
-            save_final_research_report,
         ],
         system_prompt=SYSTEM_PROMPT,
     )
@@ -144,13 +143,31 @@ def _build_execution_summary(messages, report_path: str, json_path: str) -> str:
     else:
         lines.append("Ranking data was not returned.")
 
+    synthesis_lines = []
+    if synthesis:
+        english_papers = synthesis.count("\n#### ") // 2
+        english_points = synthesis.split("### Points for Further Study", 1)
+        further_study_count = 0
+        if len(english_points) == 2:
+            further_study_count = sum(
+                1 for line in english_points[1].splitlines() if line.startswith("- ")
+            )
+        synthesis_lines = [
+            "The bilingual technical synthesis was generated successfully.",
+            f"- Papers synthesized: {len(ranking.get('papers', [])) if ranking else 0}",
+            "- Languages: English and Portuguese",
+            "- Sections: overview, paper analyses, comparison, and further study",
+        ]
+        if further_study_count:
+            synthesis_lines.append(f"- Further-study points: {further_study_count}")
+    else:
+        synthesis_lines = ["The synthesis stage did not return a rendered report."]
+
     lines.extend([
         "",
         "## 4. Technical synthesis",
         "",
-        "The bilingual technical synthesis was generated successfully."
-        if synthesis
-        else "The synthesis stage did not return a rendered report.",
+        *synthesis_lines,
         "",
         "## 5. Final report",
         "",
@@ -175,8 +192,7 @@ def run_research_pipeline(topics: list[str] | None = None) -> str:
                 f"Search for new papers on these topics: {topics_text}. "
                 f"Use arxiv and huggingface as discovery sources. "
                 f"Then generate pending embeddings, return the top 10 ranked papers, "
-                f"and produce a technical synthesis of those papers. "
-                f"Finally, save the final synthesis as a report."
+                f"and produce a complete bilingual technical synthesis of those papers. "
             ),
         }]
     })
@@ -185,15 +201,8 @@ def run_research_pipeline(topics: list[str] | None = None) -> str:
     synthesis_report = _extract_synthesis(messages)
 
     if synthesis_report:
-        save_result = save_final_research_report.invoke({"report": synthesis_report})
-        save_message = _message_content(save_result)
-
-        if "Markdown:" in save_message and "JSON:" in save_message:
-            markdown_path = save_message.split("Markdown:", 1)[1].split(". JSON:", 1)[0].strip()
-            json_path = save_message.split("JSON:", 1)[1].strip().rstrip(".")
-        else:
-            markdown_path = "reports/<generated>.md"
-            json_path = "reports/<generated>.json"
+        save_result = save_research_report(synthesis_report)
+        markdown_path, json_path = save_result
 
         final_message = _build_execution_summary(messages, markdown_path, json_path)
     else:

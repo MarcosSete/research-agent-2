@@ -12,21 +12,20 @@ def main():
     store = QdrantStore(vector_dimension=service.dimension)
 
     papers = repo.get_without_embedding()
-    print(f"Papers pendentes de embedding: {len(papers)}")
+    print(f"Pending embeddings: {len(papers)}")
 
     if not papers:
-        print("Nada a fazer.")
+        print("Nothing to do.")
         session.close()
         return
 
-    # Gera todos os embeddings de uma vez (batch) - mais eficiente, como vimos no Passo 2
-    textos = [f"{p.title}. {p.abstract}" for p in papers]
-    vetores = service.embed_batch(textos)
+    texts = [f"{p.title}. {p.abstract}" for p in papers]
+    vectors = service.embed_batch(texts)
 
-    for paper, vetor in zip(papers, vetores):
+    for paper, vector in zip(papers, vectors):
         store.upsert_paper(
             paper_id=paper.id,
-            vector=vetor,
+            vector=vector,
             payload={
                 "title": paper.title,
                 "source": paper.source_name,
@@ -34,9 +33,9 @@ def main():
             },
         )
         repo.mark_embedded(paper.id)
-        print(f"  + embedding gerado: {paper.title}")
+        print(f"  + embedding generated: {paper.title}")
 
-    print(f"\nTotal de pontos no Qdrant: {store.count()}")
+    print(f"\nTotal points in Qdrant: {store.count()}")
     session.close()
 
 

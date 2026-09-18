@@ -27,8 +27,7 @@ def _get_embedding_backend():
 
 @tool
 def search_and_save_papers(query: str, source: str = "arxiv", max_results: int = 10) -> str:
-    """Busca papers numa fonte ('arxiv', 'huggingface' ou 'semantic_scholar') e
-    salva no banco, sem duplicar. Retorna um resumo do resultado."""
+    """Search a paper source and save results to the database without duplicates."""
     collectors = {
         "arxiv": ArxivCollector(),
         "huggingface": HuggingFaceCollector(),
@@ -37,8 +36,8 @@ def search_and_save_papers(query: str, source: str = "arxiv", max_results: int =
     collector = collectors.get(source)
     if collector is None:
         return (
-            f"Fonte desconhecida: '{source}'. "
-            "Use 'arxiv', 'huggingface' ou 'semantic_scholar'."
+            f"Unknown source: '{source}'. "
+            "Use 'arxiv', 'huggingface', or 'semantic_scholar'."
         )
 
     session = get_session()
@@ -50,14 +49,14 @@ def search_and_save_papers(query: str, source: str = "arxiv", max_results: int =
         session.close()
 
     return (
-        f"{saved} papers novos salvos de {len(result.papers)} encontrados "
-        f"sobre '{query}' em {source}."
+        f"{saved} new papers saved out of {len(result.papers)} found "
+        f"for '{query}' on {source}."
     )
 
 
 @tool
 def generate_pending_embeddings() -> str:
-    """Gera embeddings para todos os papers do banco que ainda não têm um."""
+    """Generate embeddings for all papers that do not have one yet."""
     session = get_session()
     repo = PaperRepository(session)
     service, store = _get_embedding_backend()
@@ -65,27 +64,26 @@ def generate_pending_embeddings() -> str:
     papers = repo.get_without_embedding()
     if not papers:
         session.close()
-        return "Nenhum paper pendente de embedding."
+        return "No papers pending embedding generation."
 
-    textos = [f"{p.title}. {p.abstract}" for p in papers]
-    vetores = service.embed_batch(textos)
+    texts = [f"{p.title}. {p.abstract}" for p in papers]
+    vectors = service.embed_batch(texts)
 
-    for paper, vetor in zip(papers, vetores):
+    for paper, vector in zip(papers, vectors):
         store.upsert_paper(
             paper_id=paper.id,
-            vector=vetor,
+            vector=vector,
             payload={"title": paper.title, "source": paper.source_name},
         )
         repo.mark_embedded(paper.id)
 
     session.close()
-    return f"{len(papers)} embeddings gerados e salvos no Qdrant."
+    return f"{len(papers)} embeddings generated and saved to Qdrant."
 
 
 @tool
 def get_top_ranked_papers(limit: int = 10) -> str:
-    """Retorna o ranking final em JSON, preservando os metadados factuais
-    para a etapa de síntese e renderização do relatório."""
+    """Return the final ranking as JSON while preserving factual metadata for synthesis."""
     session = get_session()
     profile = load_research_profile()
     service, store = _get_embedding_backend()
@@ -94,7 +92,10 @@ def get_top_ranked_papers(limit: int = 10) -> str:
     interest_vector = scorer.interest_vector
     if interest_vector is None:
         session.close()
-        return json.dumps({"error": "Nenhum interesse configurado no perfil de pesquisa."}, ensure_ascii=False)
+        return json.dumps(
+            {"error": "No research interests configured in the research profile."},
+            ensure_ascii=False,
+        )
 
     similar_results = store.search_similar(interest_vector, limit=50)
     similarity_by_id = {r["id"]: r["score"] for r in similar_results}
@@ -155,9 +156,9 @@ def get_top_ranked_papers(limit: int = 10) -> str:
 
 @tool
 def save_final_research_report(report: str) -> str:
-    """Salva a síntese final da pesquisa em Markdown e JSON."""
+    """Save the final research synthesis as Markdown and JSON."""
     markdown_path, json_path = save_research_report(report)
     return (
-        f"Relatório salvo com sucesso. "
+        f"Report saved successfully. "
         f"Markdown: {markdown_path}. JSON: {json_path}."
     )

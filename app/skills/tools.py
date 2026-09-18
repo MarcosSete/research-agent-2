@@ -1,4 +1,6 @@
 from langchain_core.tools import tool
+import json
+
 from app.database.session import get_session
 from app.database.repository import PaperRepository
 from app.database.models import PaperORM
@@ -11,7 +13,6 @@ from app.ranking.scorer import PaperScorer
 from app.config.research_profile_loader import load_research_profile
 from app.reports.report_writer import save_research_report
 
-# Cache simples em memória - evita recarregar o modelo de embeddings a cada tool call
 _service = None
 _store = None
 
@@ -83,8 +84,8 @@ def generate_pending_embeddings() -> str:
 
 @tool
 def get_top_ranked_papers(limit: int = 10) -> str:
-    """Retorna os papers mais relevantes do banco, ranqueados de acordo com
-    o perfil de interesses do usuário, com dados suficientes para síntese."""
+    """Retorna o ranking final em JSON, preservando os metadados factuais
+    para a etapa de síntese e renderização do relatório."""
     session = get_session()
     profile = load_research_profile()
     service, store = _get_embedding_backend()
@@ -93,7 +94,7 @@ def get_top_ranked_papers(limit: int = 10) -> str:
     interest_vector = scorer.interest_vector
     if interest_vector is None:
         session.close()
-        return "Nenhum interesse configurado no perfil de pesquisa."
+        return json.dumps({"error": "Nenhum interesse configurado no perfil de pesquisa."}, ensure_ascii=False)
 
     similar_results = store.search_similar(interest_vector, limit=50)
     similarity_by_id = {r["id"]: r["score"] for r in similar_results}
@@ -128,27 +129,28 @@ def get_top_ranked_papers(limit: int = 10) -> str:
 
     if not ranked:
         session.close()
-        return "Nenhum paper ranqueado encontrado."
+        return json.dumps({"papers": []}, ensure_ascii=False)
 
     selected = ranked[:limit]
-    lines = []
-    for position, (score, paper) in enumerate(selected, start=1):
-        authors = ", ".join(a.name for a in paper.authors) or "Não informado"
-        lines.extend([
-            f"## {position}. {paper.title}",
-            f"Score: {score:.4f}",
-            f"Autores: {authors}",
-            f"Publicado: {paper.published_date or 'Não informado'}",
-            f"Conferência: {paper.conference or 'Não informado'}",
-            f"Citações: {paper.citations}",
-            f"Resumo: {paper.abstract}",
-            f"Fonte: {paper.source_url}",
-            "",
-        ])
+    result = {
+        "papers": [
+            {
+                "position": position,
+                "title": paper.title,
+                "score": round(score, 4),
+                "authors": [a.name for a in paper.authors],
+                "published": str(paper.published_date) if paper.published_date else None,
+                "conference": paper.conference,
+                "citations": paper.citations,
+                "abstract": paper.abstract,
+                "source": str(paper.source_url),
+            }
+            for position, (score, paper) in enumerate(selected, start=1)
+        ]
+    }
 
     session.close()
-    return "\n".join(lines)
-
+    return json.dumps(result, ensure_ascii=False, indent=2)
 
 
 @tool

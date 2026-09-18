@@ -137,6 +137,103 @@ python -m app.scheduler.run_scheduler
 
 ---
 
+## ⚙️ Personalizando seu perfil de pesquisa
+
+As preferências de pesquisa de cada usuário ficam no arquivo:
+
+`config/research_profile.yaml`
+
+**Este é o principal arquivo que você deve editar para personalizar o comportamento do sistema.** Você não precisa alterar o código do agente para definir seus interesses.
+
+### Exemplo
+
+```yaml
+interests:
+  - Deep Learning
+  - Reinforcement Learning
+  - Probabilistic Machine Learning
+  - Deep Generative Modeling
+  - Graph Neural Network
+  - Causal Machine Learning
+
+priority:
+  Deep Learning: 100
+  Reinforcement Learning: 80
+  Probabilistic Machine Learning: 70
+  Deep Generative Modeling: 60
+  Graph Neural Network: 50
+  Causal Machine Learning: 40
+
+ignored:
+  - Healthcare
+  - Biology
+
+favorite_authors:
+  - Richard Sutton
+  - Yoshua Bengio
+  - Yann LeCun
+
+favorite_conferences:
+  - NeurIPS
+  - ICML
+  - ICLR
+
+reading_level: advanced
+max_daily_papers: 20
+summary_style: technical
+```
+
+### O que significa cada seção?
+
+| Campo | Descrição |
+| :--- | :--- |
+| `interests` | Temas que você deseja pesquisar. Eles são usados como base para a busca e para o perfil semântico de interesse. |
+| `priority` | Peso relativo de cada interesse no ranking. Valores maiores fazem aquele interesse ter maior influência no perfil semântico. |
+| `ignored` | Temas ou domínios que você deseja evitar nos resultados. |
+| `favorite_authors` | Autores que você considera relevantes para sua pesquisa. |
+| `favorite_conferences` | Conferências que você considera relevantes para sua pesquisa. |
+| `reading_level` | Nível técnico esperado para a síntese dos papers, como `beginner`, `intermediate` ou `advanced`. |
+| `max_daily_papers` | Limite configurado de papers considerados por execução/período do perfil. |
+| `summary_style` | Estilo desejado para a síntese, por exemplo `technical`. |
+
+### 🔑 Entendendo `priority`
+
+A seção `priority` **não representa porcentagens nem pontos adicionados diretamente a cada paper**. Ela define a importância relativa dos seus interesses dentro do perfil usado pelo ranking.
+
+Por exemplo:
+
+```yaml
+priority:
+  Deep Learning: 100
+  Reinforcement Learning: 80
+  Graph Neural Network: 50
+```
+
+Isso significa:
+
+- **Deep Learning** → maior influência;
+- **Reinforcement Learning** → influência intermediária;
+- **Graph Neural Network** → menor influência entre os três.
+
+Os valores são relativos. Você pode usar, por exemplo, `100 / 80 / 50`, `10 / 8 / 5` ou outros valores proporcionais.
+
+**Importante:** os interesses usados em `priority` devem corresponder aos interesses definidos em `interests`.
+
+### 🛠️ Como personalizar
+
+1. Abra `config/research_profile.yaml`.
+2. Altere as seções de acordo com seus interesses.
+3. Salve o arquivo.
+4. Execute o agente novamente:
+
+```bash
+python -m app.planner.research_agent
+```
+
+O pipeline utilizará o perfil atualizado na próxima execução.
+
+---
+
 ## 🤝 Contributing
 
 This project is designed to be a collaborative effort. If you want to contribute, here is the best way to start:

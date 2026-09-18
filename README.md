@@ -36,7 +36,10 @@ The current implementation uses a **single DeepAgents agent with specialized too
 
 *(Architecture diagram generated below. For an editable version, see the Excalidraw instructions at the bottom of this file.)*
 
-![Captura de tela 2026-09-17 152425.png](docs/images/Captura%20de%20tela%202026-09-17%20152425.png)
+![Research Intelligence System architecture](docs/images/architecture.svg)
+
+The editable architecture source is available at [`docs/images/architecture.excalidraw`](docs/images/architecture.excalidraw).
+
 The system is divided into four distinct layers, ensuring separation of concerns and making it easy to swap out components:
 
 1. **Discovery Layer**: Collectors for Arxiv, Semantic Scholar, and Hugging Face Papers normalize data into a unified `Paper` Pydantic model.
@@ -236,18 +239,21 @@ The pipeline will use the updated profile on the next execution.
 
 ## 🤝 Contributing
 
-This project is designed to be a collaborative effort. If you want to contribute, here is the best way to start:
+This project is designed to be a collaborative effort. If you want to contribute, here are the areas that currently make the most sense:
 
 ### Where to begin?
-1. **Good First Issue**: Add a new Collector! Implement `app/collectors/huggingface_collector.py` following the `BaseCollector` interface.
-2. **Improve Ranking**: Tweak the weights in `app/ranking/scorer.py` or add a new metric (e.g., "Code Availability Score").
-3. **UI/Dashboard**: Currently, the output is CLI/Markdown based. Building a simple FastAPI + Streamlit dashboard to visualize the `papers` table would be an amazing contribution.
+
+1. **Add a new Collector**: ArXiv and Hugging Face Papers are already implemented, and Semantic Scholar is available as an auxiliary source. A new collector (for example, another academic paper index) is a good way to extend discovery while following the existing `BaseCollector` interface.
+2. **Improve Ranking**: The ranking pipeline is implemented in `app/ranking/scorer.py`. Contributions can improve scoring behavior, add well-justified ranking signals, or improve the handling of research-profile preferences.
+3. **UI / Dashboard**: The current system is CLI/Markdown based. A FastAPI + Streamlit dashboard could expose the research profile, trigger the pipeline, show ranking results, display generated reports, and provide pipeline status.
+4. **Testing**: Add unit and integration tests around collectors, ranking, persistence, embeddings, synthesis, and the end-to-end pipeline.
+5. **Documentation & Architecture**: Keep the README and `docs/images/architecture.excalidraw` synchronized with the implementation when the architecture changes.
 
 ### Project Structure
 ```text
 research-agent-2/
 ├── app/
-│   ├── collectors/     # Arxiv, Semantic Scholar, Hugging Face
+│   ├── collectors/     # ArXiv, Semantic Scholar, Hugging Face
 │   ├── config/         # Application settings and research profile loader
 │   ├── database/       # SQLAlchemy models, repository, session
 │   ├── embeddings/     # Local embeddings and Qdrant integration
@@ -255,8 +261,12 @@ research-agent-2/
 │   ├── models/         # Domain models
 │   ├── planner/        # Single-agent research orchestration
 │   ├── ranking/        # Paper scoring
+│   ├── reports/        # Markdown and JSON report persistence
+│   ├── scheduler/      # Weekly APScheduler job
 │   ├── skills/         # Agent tools
 │   └── synthesis/      # Technical research synthesis
+├── docs/
+│   └── images/         # Architecture source (.excalidraw) and rendered diagram
 ├── scripts/            # Local execution and utility scripts
 ├── migrations/         # Alembic DB migrations
 └── config/             # YAML profiles (research_profile.yaml)

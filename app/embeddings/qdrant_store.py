@@ -4,39 +4,39 @@ from app.config.settings import settings
 
 COLLECTION_NAME = "papers"
 
+
 class QdrantStore:
     def __init__(self, vector_dimension: int):
-        self.client = QdrantClient(url = settings.qdrant_url)
+        self.client = QdrantClient(url=settings.qdrant_url)
         self.vector_dimension = vector_dimension
         self._ensure_collection()
 
     def _ensure_collection(self) -> None:
-        """Cria a collection se ela ainda não existir. Idempotente."""
+        """Create the collection if it does not exist yet."""
         existing = self.client.get_collections().collections
         names = [c.name for c in existing]
 
         if COLLECTION_NAME not in names:
             self.client.create_collection(
-                collection_name= COLLECTION_NAME,
-                vectors_config= VectorParams(
-                    size= self.vector_dimension,
-                    distance= Distance.COSINE,
+                collection_name=COLLECTION_NAME,
+                vectors_config=VectorParams(
+                    size=self.vector_dimension,
+                    distance=Distance.COSINE,
                 )
             )
 
     def upsert_paper(self, paper_id: int, vector: list[float], payload: dict) -> None:
-        """Salva (ou atualiza) o vetor de um paper. paper_id vem do Postgres."""
-
+        """Store or update a paper vector. paper_id comes from PostgreSQL."""
         point = PointStruct(
-            id = paper_id,
-            vector = vector,
-            payload = payload
+            id=paper_id,
+            vector=vector,
+            payload=payload,
         )
 
-        self.client.upsert(collection_name= COLLECTION_NAME, points=[point])
+        self.client.upsert(collection_name=COLLECTION_NAME, points=[point])
 
     def search_similar(self, vector: list[float], limit: int = 5) -> list[dict]:
-        """Busca os papers mais parecidos e retorna também seus vetores armazenados."""
+        """Search for similar papers and return their stored vectors as well."""
         results = self.client.query_points(
             collection_name=COLLECTION_NAME,
             query=vector,

@@ -10,7 +10,7 @@ class PaperRepository:
         self.session = session
 
     def save(self, paper: Paper) -> PaperORM | None:
-        """Persiste um Paper e seus autores, evitando duplicidade por source_url."""
+        """Persist a Paper and its authors, avoiding duplicates by source_url."""
         source_url = str(paper.source.url)
         existing = (
             self.session.query(PaperORM)
@@ -72,7 +72,7 @@ class PaperRepository:
         return self.session.query(PaperORM).count()
 
     def get_without_embedding(self) -> list[PaperORM]:
-        """Retorna papers que ainda não tiveram embedding gerado."""
+        """Return papers that do not have an embedding yet."""
         return (
             self.session.query(PaperORM)
             .filter_by(has_embedding=False)
@@ -80,7 +80,7 @@ class PaperRepository:
         )
 
     def mark_embedded(self, paper_id: int) -> None:
-        """Marca um paper como já processado no Qdrant."""
+        """Mark a paper as processed in Qdrant."""
         paper = (
             self.session.query(PaperORM)
             .filter_by(id=paper_id)

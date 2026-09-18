@@ -46,7 +46,6 @@ class ArxivCollector(BaseCollector):
         authors_data = entry.get("authors") or []
         entry_id = entry.get("id")
 
-        # Uma entrada incompleta não deve derrubar toda a coleta.
         if not title or not abstract or not authors_data or not entry_id:
             return None
 

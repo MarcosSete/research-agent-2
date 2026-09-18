@@ -6,16 +6,19 @@ from app.config.research_profile_loader import load_research_profile
 from app.llm.factory import get_smart_llm
 
 
-SYSTEM_PROMPT = """Você é um pesquisador de Machine Learning.
-Sua tarefa é sintetizar papers científicos selecionados por um pipeline de pesquisa.
+SYSTEM_PROMPT = """You are a Machine Learning researcher.
+Your task is to synthesize scientific papers selected by a research pipeline.
 
-Regras:
-- Baseie-se exclusivamente nos papers fornecidos.
-- Não invente resultados, métodos, métricas ou conclusões.
-- Considere o nível de leitura e o estilo de resumo do perfil.
-- Explique os trabalhos de forma técnica e objetiva.
-- Compare os papers quando houver diferenças relevantes.
-- Destaque ideias, contribuições, limitações e possíveis relações entre os trabalhos.
+Rules:
+- Base the synthesis exclusively on the provided papers.
+- Do not invent results, methods, metrics, or conclusions.
+- Consider the reading level and summary style from the research profile.
+- Explain the papers in a technical and objective way.
+- Compare the papers when relevant differences exist.
+- Highlight ideas, contributions, limitations, and relationships between the papers.
+- Produce both English and Portuguese versions of every synthesis field.
+- The English version must be written first and the Portuguese version must faithfully
+  preserve the meaning of the English version.
 """
 
 
@@ -33,30 +36,38 @@ class RankedPaper(BaseModel):
 
 class PaperSynthesis(BaseModel):
     title: str
-    problem: str
-    method: str
-    contribution: str
-    limitations: str
-    why_read: str
+    problem_en: str
+    method_en: str
+    contribution_en: str
+    limitations_en: str
+    why_read_en: str
+    problem_pt: str
+    method_pt: str
+    contribution_pt: str
+    limitations_pt: str
+    why_read_pt: str
 
 
 class ResearchSynthesis(BaseModel):
-    overview: str
+    overview_en: str
     papers: list[PaperSynthesis] = Field(default_factory=list)
-    comparison: str
-    deep_dive_points: list[str] = Field(default_factory=list)
+    comparison_en: str
+    deep_dive_points_en: list[str] = Field(default_factory=list)
+    overview_pt: str
+    comparison_pt: str
+    deep_dive_points_pt: list[str] = Field(default_factory=list)
 
 
 def synthesize_ranked_papers(ranked_papers: str) -> str:
-    """Gera uma síntese técnica estruturada e a renderiza em Markdown."""
+    """Generate a structured bilingual research synthesis and render it as Markdown."""
     if not ranked_papers.strip():
-        return "Nenhum paper disponível para síntese."
+        return "No papers available for synthesis."
 
     ranking_data = json.loads(ranked_papers)
     ranked = [RankedPaper.model_validate(item) for item in ranking_data.get("papers", [])]
 
     if not ranked:
-        return "Nenhum paper disponível para síntese."
+        return "No papers available for synthesis."
 
     profile = load_research_profile()
     llm = get_smart_llm(temperature=0.2)
@@ -71,44 +82,54 @@ def synthesize_ranked_papers(ranked_papers: str) -> str:
 
     prompt = f"""{SYSTEM_PROMPT}
 
-Perfil de leitura: {profile.reading_level}
-Estilo de resumo: {profile.summary_style}
+Reading level: {profile.reading_level}
+Summary style: {profile.summary_style}
 
-Papers selecionados pelo ranking:
+Papers selected by the ranking:
 
 {json.dumps(papers_for_llm, ensure_ascii=False, indent=2)}
 
-Retorne SOMENTE um objeto JSON válido.
+Return ONLY one valid JSON object.
 
-Formato obrigatório:
+Required format:
 {{
-  "overview": "visão geral da seleção",
+  "overview_en": "English overview of the selection",
   "papers": [
     {{
-      "title": "título exato do paper",
-      "problem": "problema abordado",
-      "method": "método ou ideia principal",
-      "contribution": "principal contribuição",
-      "limitations": "limitações identificáveis no conteúdo fornecido",
-      "why_read": "por que este paper merece leitura"
+      "title": "exact paper title",
+      "problem_en": "problem addressed",
+      "method_en": "main method or idea",
+      "contribution_en": "main contribution",
+      "limitations_en": "limitations identifiable from the provided content",
+      "why_read_en": "why this paper is worth reading",
+      "problem_pt": "Portuguese translation of problem_en",
+      "method_pt": "Portuguese translation of method_en",
+      "contribution_pt": "Portuguese translation of contribution_en",
+      "limitations_pt": "Portuguese translation of limitations_en",
+      "why_read_pt": "Portuguese translation of why_read_en"
     }}
   ],
-  "comparison": "comparação entre os papers",
-  "deep_dive_points": [
-    "ponto para aprofundamento"
+  "comparison_en": "English comparison of the papers",
+  "deep_dive_points_en": [
+    "English point for further study"
+  ],
+  "overview_pt": "Portuguese translation of overview_en",
+  "comparison_pt": "Portuguese translation of comparison_en",
+  "deep_dive_points_pt": [
+    "Portuguese translation of each deep_dive_points_en item"
   ]
 }}
 
-Devolva um item em "papers" para cada paper fornecido.
-Use somente informações presentes nos abstracts fornecidos.
-Não adicione campos.
+Return one item in "papers" for each provided paper.
+Use only information present in the provided abstracts.
+Do not add fields.
 """
-
+ 
     response = llm.invoke(prompt)
     content = response.content
 
     if not isinstance(content, str) or not content.strip():
-        raise ValueError("O LLM retornou conteúdo vazio para a síntese estruturada.")
+        raise ValueError("The LLM returned empty content for the structured synthesis.")
 
     data = json.loads(content)
     synthesis = ResearchSynthesis.model_validate(data)
@@ -125,11 +146,15 @@ def render_research_synthesis(
     lines = [
         "# Research Report",
         "",
-        "## Visão geral",
+        "[🇧🇷 Jump to the Portuguese version](#português)",
         "",
-        synthesis.overview,
+        "## English",
         "",
-        "## Papers recomendados",
+        "### Overview",
+        "",
+        synthesis.overview_en,
+        "",
+        "### Recommended Papers",
         "",
     ]
 
@@ -137,7 +162,77 @@ def render_research_synthesis(
         metadata = metadata_by_title.get(paper.title)
 
         lines.extend([
-            f"### {position}. {paper.title}",
+            f"#### {position}. {paper.title}",
+            "",
+        ])
+
+        if metadata:
+            lines.extend([
+                f"**Score:** {metadata.score:.4f}",
+                f"**Authors:** {', '.join(metadata.authors) or 'Not provided'}",
+                f"**Published:** {metadata.published or 'Not provided'}",
+                f"**Conference:** {metadata.conference or 'Not provided'}",
+                f"**Citations:** {metadata.citations}",
+                f"**Source:** {metadata.source}",
+                "",
+            ])
+
+        lines.extend([
+            "##### 🎯 Problem",
+            "",
+            paper.problem_en,
+            "",
+            "##### 🧠 Method",
+            "",
+            paper.method_en,
+            "",
+            "##### 💡 Contribution",
+            "",
+            paper.contribution_en,
+            "",
+            "##### ⚠️ Limitations",
+            "",
+            paper.limitations_en,
+            "",
+            "##### 📖 Why read",
+            "",
+            paper.why_read_en,
+            "",
+        ])
+
+    lines.extend([
+        "### Comparison",
+        "",
+        synthesis.comparison_en,
+        "",
+        "### Points for Further Study",
+        "",
+    ])
+
+    for point in synthesis.deep_dive_points_en:
+        lines.append(f"- {point}")
+
+    lines.extend([
+        "",
+        "---",
+        "",
+        "## Português",
+        "",
+        "[🇺🇸 Back to the English version](#english)",
+        "",
+        "### Visão geral",
+        "",
+        synthesis.overview_pt,
+        "",
+        "### Papers recomendados",
+        "",
+    ])
+
+    for position, paper in enumerate(synthesis.papers, start=1):
+        metadata = metadata_by_title.get(paper.title)
+
+        lines.extend([
+            f"#### {position}. {paper.title}",
             "",
         ])
 
@@ -153,38 +248,38 @@ def render_research_synthesis(
             ])
 
         lines.extend([
-            "#### 🎯 Problema",
+            "##### 🎯 Problema",
             "",
-            paper.problem,
+            paper.problem_pt,
             "",
-            "#### 🧠 Método",
+            "##### 🧠 Método",
             "",
-            paper.method,
+            paper.method_pt,
             "",
-            "#### 💡 Contribuição",
+            "##### 💡 Contribuição",
             "",
-            paper.contribution,
+            paper.contribution_pt,
             "",
-            "#### ⚠️ Limitações",
+            "##### ⚠️ Limitações",
             "",
-            paper.limitations,
+            paper.limitations_pt,
             "",
-            "#### 📖 Por que ler",
+            "##### 📖 Por que ler",
             "",
-            paper.why_read,
+            paper.why_read_pt,
             "",
         ])
 
     lines.extend([
-        "## Comparação",
+        "### Comparação",
         "",
-        synthesis.comparison,
+        synthesis.comparison_pt,
         "",
-        "## Pontos para aprofundamento",
+        "### Pontos para aprofundamento",
         "",
     ])
 
-    for point in synthesis.deep_dive_points:
+    for point in synthesis.deep_dive_points_pt:
         lines.append(f"- {point}")
 
     return "\n".join(lines)

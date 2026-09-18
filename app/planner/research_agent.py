@@ -10,21 +10,20 @@ from app.config.research_profile_loader import load_research_profile
 from app.llm.factory import get_fast_llm
 
 
-SYSTEM_PROMPT = """Você é um assistente de pesquisa científica. Seu trabalho, nesta ordem:
-1. Buscar papers novos sobre os temas pedidos em duas fontes de descoberta:
-   arxiv e huggingface, usando a tool search_and_save_papers para cada tema/fonte.
-2. Gerar embeddings pendentes com generate_pending_embeddings.
-3. Retornar o ranking final com get_top_ranked_papers.
-4. Sintetizar o ranking com synthesize_ranked_papers.
+SYSTEM_PROMPT = """You are a scientific research assistant. Follow this workflow in order:
+1. Search for new papers on the requested topics using two discovery sources:
+   arxiv and huggingface, calling search_and_save_papers for each topic/source pair.
+2. Generate pending embeddings with generate_pending_embeddings.
+3. Return the final ranking with get_top_ranked_papers.
+4. Synthesize the ranking with synthesize_ranked_papers.
 
-Semantic Scholar está disponível como fonte auxiliar, mas não é obrigatório para a
-etapa de descoberta. Não use Semantic Scholar automaticamente quando arxiv e
-huggingface já tiverem sido consultados.
+Semantic Scholar is available as an auxiliary source, but it is not required for discovery.
+Do not use Semantic Scholar automatically when arxiv and huggingface have already been queried.
 
-Não pule etapas. Não invente papers - use somente o que as tools retornarem.
-A síntese deve ser baseada exclusivamente nos dados retornados pelo ranking."""
-
-
+Do not skip steps. Do not invent papers; use only papers returned by the tools.
+The synthesis must be based exclusively on the data returned by the ranking tool."""
+ 
+ 
 def build_research_agent():
     llm = get_fast_llm(temperature=0.0)
 
@@ -52,11 +51,11 @@ def run_research_pipeline(topics: list[str] | None = None) -> str:
         "messages": [{
             "role": "user",
             "content": (
-                f"Busque papers novos sobre estes temas: {topics_text}. "
-                f"Use arxiv e huggingface como fontes de descoberta. "
-                f"Depois gere os embeddings pendentes, traga o top 10 ranqueado "
-                f"e faça uma síntese técnica desses papers. "
-                f"Por fim, salve a síntese final como relatório."
+                f"Search for new papers on these topics: {topics_text}. "
+                f"Use arxiv and huggingface as discovery sources. "
+                f"Then generate pending embeddings, return the top 10 ranked papers, "
+                f"and produce a technical synthesis of those papers. "
+                f"Finally, save the final synthesis as a report."
             ),
         }]
     })

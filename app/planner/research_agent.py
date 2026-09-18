@@ -1,4 +1,5 @@
 from deepagents import create_deep_agent
+import json
 from app.skills.tools import (
     search_and_save_papers,
     generate_pending_embeddings,
@@ -18,7 +19,7 @@ Workflow:
 2. Generate pending embeddings with generate_pending_embeddings.
 3. Return the final ranking with get_top_ranked_papers.
 4. Synthesize the ranking with synthesize_ranked_papers.
-5. Save the complete bilingual synthesis with save_final_research_report.
+5. Return the complete bilingual synthesis. The runtime saves the rendered synthesis after the agent finishes.
 
 Semantic Scholar is available as an auxiliary source, but it is not required for discovery.
 Do not use Semantic Scholar automatically when arxiv and huggingface have already been queried.
@@ -57,6 +58,109 @@ def build_research_agent():
     )
 
 
+def _message_content(message) -> str:
+    content = getattr(message, "content", "")
+    return content if isinstance(content, str) else str(content or "")
+
+
+def _extract_synthesis(messages) -> str | None:
+    for message in reversed(messages):
+        content = _message_content(message)
+        if "# Research Report" in content:
+            return content
+    return None
+
+
+def _extract_ranking(messages) -> dict | None:
+    for message in reversed(messages):
+        content = _message_content(message).strip()
+        if not content.startswith("{"):
+            continue
+        try:
+            data = json.loads(content)
+        except json.JSONDecodeError:
+            continue
+        if isinstance(data, dict) and isinstance(data.get("papers"), list):
+            return data
+    return None
+
+
+def _build_execution_summary(messages, report_path: str, json_path: str) -> str:
+    search_results = []
+    embedding_result = None
+
+    for message in messages:
+        content = _message_content(message)
+        if "new papers saved out of" in content:
+            search_results.append(content)
+        if "embeddings generated and saved" in content or "No papers pending embedding generation" in content:
+            embedding_result = content
+
+    ranking = _extract_ranking(messages)
+    synthesis = _extract_synthesis(messages)
+
+    total_found = 0
+    total_saved = 0
+
+    for content in search_results:
+        parts = content.split(" new papers saved out of ")
+        if len(parts) != 2:
+            continue
+        try:
+            saved = int(parts[0])
+            found = int(parts[1].split(" found", 1)[0])
+        except (ValueError, IndexError):
+            continue
+        total_saved += saved
+        total_found += found
+
+    lines = [
+        "Research pipeline completed successfully.",
+        "",
+        "## 1. Discovery",
+        "",
+        f"{len(search_results)} searches completed.",
+        f"- Papers found: {total_found}",
+        f"- New papers saved: {total_saved}",
+        "",
+        "## 2. Embeddings",
+        "",
+        embedding_result or "Embedding stage completed; no tool result was returned.",
+        "",
+        "## 3. Ranking — Top 10",
+        "",
+    ]
+
+    if ranking and ranking.get("papers"):
+        lines.extend([
+            "| # | Paper | Score |",
+            "|---|---|---:|",
+        ])
+        for paper in ranking["papers"][:10]:
+            lines.append(
+                f"| {paper.get('position', '')} | {paper.get('title', '')} | "
+                f"{paper.get('score', '')} |"
+            )
+    else:
+        lines.append("Ranking data was not returned.")
+
+    lines.extend([
+        "",
+        "## 4. Technical synthesis",
+        "",
+        "The bilingual technical synthesis was generated successfully."
+        if synthesis
+        else "The synthesis stage did not return a rendered report.",
+        "",
+        "## 5. Final report",
+        "",
+        f"- Markdown: `{report_path}`",
+        f"- JSON: `{json_path}`",
+    ])
+
+    return "\n".join(lines)
+
+
 def run_research_pipeline(topics: list[str] | None = None) -> str:
     profile = load_research_profile()
     topics = topics or profile.interests
@@ -77,7 +181,27 @@ def run_research_pipeline(topics: list[str] | None = None) -> str:
         }]
     })
 
-    final_message = result["messages"][-1].content
+    messages = result.get("messages", [])
+    synthesis_report = _extract_synthesis(messages)
+
+    if synthesis_report:
+        save_result = save_final_research_report.invoke({"report": synthesis_report})
+        save_message = _message_content(save_result)
+
+        if "Markdown:" in save_message and "JSON:" in save_message:
+            markdown_path = save_message.split("Markdown:", 1)[1].split(". JSON:", 1)[0].strip()
+            json_path = save_message.split("JSON:", 1)[1].strip().rstrip(".")
+        else:
+            markdown_path = "reports/<generated>.md"
+            json_path = "reports/<generated>.json"
+
+        final_message = _build_execution_summary(messages, markdown_path, json_path)
+    else:
+        final_message = (
+            "Research pipeline did not produce a final synthesis. "
+            "The agent completed without returning a rendered research report."
+        )
+
     print(final_message)
     return final_message
 

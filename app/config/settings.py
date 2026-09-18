@@ -26,7 +26,7 @@ ENV_FILE = find_env_file()
 
 class Settings(BaseSettings):
     database_url: str = Field(
-        default="postgresql://research:research123@localhost:5432/research_agent"
+        default="postgresql://research:research@localhost:5432/research_agent"
     )
     qdrant_url: str = Field(default="http://localhost:6333")
     max_daily_papers: int = Field(default=20)

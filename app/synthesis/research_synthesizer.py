@@ -19,6 +19,18 @@ Regras:
 """
 
 
+class RankedPaper(BaseModel):
+    position: int
+    title: str
+    score: float
+    authors: list[str] = Field(default_factory=list)
+    published: str | None = None
+    conference: str | None = None
+    citations: int = 0
+    abstract: str
+    source: str
+
+
 class PaperSynthesis(BaseModel):
     title: str
     problem: str
@@ -40,8 +52,22 @@ def synthesize_ranked_papers(ranked_papers: str) -> str:
     if not ranked_papers.strip():
         return "Nenhum paper disponível para síntese."
 
+    ranking_data = json.loads(ranked_papers)
+    ranked = [RankedPaper.model_validate(item) for item in ranking_data.get("papers", [])]
+
+    if not ranked:
+        return "Nenhum paper disponível para síntese."
+
     profile = load_research_profile()
     llm = get_smart_llm(temperature=0.2)
+
+    papers_for_llm = [
+        {
+            "title": paper.title,
+            "abstract": paper.abstract,
+        }
+        for paper in ranked
+    ]
 
     prompt = f"""{SYSTEM_PROMPT}
 
@@ -50,7 +76,7 @@ Estilo de resumo: {profile.summary_style}
 
 Papers selecionados pelo ranking:
 
-{ranked_papers}
+{json.dumps(papers_for_llm, ensure_ascii=False, indent=2)}
 
 Retorne SOMENTE um objeto JSON válido.
 
@@ -73,7 +99,8 @@ Formato obrigatório:
   ]
 }}
 
-Use somente informações presentes nos papers fornecidos.
+Devolva um item em "papers" para cada paper fornecido.
+Use somente informações presentes nos abstracts fornecidos.
 Não adicione campos.
 """
 
@@ -84,12 +111,17 @@ Não adicione campos.
         raise ValueError("O LLM retornou conteúdo vazio para a síntese estruturada.")
 
     data = json.loads(content)
-    result = ResearchSynthesis.model_validate(data)
+    synthesis = ResearchSynthesis.model_validate(data)
 
-    return render_research_synthesis(result)
+    return render_research_synthesis(synthesis, ranked)
 
 
-def render_research_synthesis(synthesis: ResearchSynthesis) -> str:
+def render_research_synthesis(
+    synthesis: ResearchSynthesis,
+    ranked_papers: list[RankedPaper],
+) -> str:
+    metadata_by_title = {paper.title: paper for paper in ranked_papers}
+
     lines = [
         "# Research Report",
         "",
@@ -102,9 +134,25 @@ def render_research_synthesis(synthesis: ResearchSynthesis) -> str:
     ]
 
     for position, paper in enumerate(synthesis.papers, start=1):
+        metadata = metadata_by_title.get(paper.title)
+
         lines.extend([
             f"### {position}. {paper.title}",
             "",
+        ])
+
+        if metadata:
+            lines.extend([
+                f"**Score:** {metadata.score:.4f}",
+                f"**Autores:** {', '.join(metadata.authors) or 'Não informado'}",
+                f"**Publicado:** {metadata.published or 'Não informado'}",
+                f"**Conferência:** {metadata.conference or 'Não informado'}",
+                f"**Citações:** {metadata.citations}",
+                f"**Fonte:** {metadata.source}",
+                "",
+            ])
+
+        lines.extend([
             "#### 🎯 Problema",
             "",
             paper.problem,

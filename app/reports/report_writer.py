@@ -7,7 +7,7 @@ REPORTS_DIR = Path("reports")
 
 
 def save_research_report(content: str) -> tuple[Path, Path]:
-    """Salva a síntese final em Markdown e JSON."""
+    """Save the final research synthesis as Markdown and JSON."""
     REPORTS_DIR.mkdir(parents=True, exist_ok=True)
 
     timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")

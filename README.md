@@ -278,3 +278,8 @@ research-agent-2/
 ## 📄 License
 
 This project is open-source under the MIT License. Built with ❤️ by the ML Engineering community.
+
+<p align="center">
+Made with 📖 for the global AI/ML community.<br>
+Curated by <a href="https://github.com/MarcosSete">Marcos Cruz</a> — feel free to connect on <a href="https://www.linkedin.com/in/marcos-gabriel-s-cruz-5603bb289/">LinkedIn</a>.
+</p>

@@ -27,19 +27,10 @@ Do not use Semantic Scholar automatically when arxiv and huggingface have alread
 Do not skip steps. Do not invent papers; use only papers returned by the tools.
 The synthesis must be based exclusively on the data returned by the ranking tool.
 
-Final response requirements:
-- Do not narrate future actions such as "I will save the report" or "Now let me save...".
-- The final response must be written only after the save_final_research_report tool has completed successfully.
-- Report what actually happened during the run.
-- Include these sections:
-  1. Discovery — number of searches, topics/sources, papers found, and new papers saved.
-  2. Embeddings — number generated or state that none were pending.
-  3. Ranking — list the top 10 papers with their scores.
-  4. Technical synthesis — briefly summarize the generated synthesis, including its main cross-paper themes.
-  5. Final report — include the Markdown and JSON report paths returned by the save tool.
-- Keep the final response concise but informative.
-- Do not reproduce the full bilingual report in the final response.
-- If a tool returns an error or a step cannot be completed, state that explicitly instead of claiming success."""
+After synthesize_ranked_papers completes, stop the research workflow.
+The runtime, not the agent, is responsible for saving the rendered report and printing the execution summary.
+Do not attempt to save the report and do not produce an execution summary.
+If a tool returns an error or a step cannot be completed, state that explicitly."""
  
  
 def build_research_agent():
@@ -62,8 +53,14 @@ def _message_content(message) -> str:
     return content if isinstance(content, str) else str(content or "")
 
 
+def _is_tool_message(message) -> bool:
+    return getattr(message, "type", "") == "tool"
+
+
 def _extract_synthesis(messages) -> str | None:
     for message in reversed(messages):
+        if not _is_tool_message(message):
+            continue
         content = _message_content(message)
         if "# Research Report" in content:
             return content
@@ -72,6 +69,8 @@ def _extract_synthesis(messages) -> str | None:
 
 def _extract_ranking(messages) -> dict | None:
     for message in reversed(messages):
+        if not _is_tool_message(message):
+            continue
         content = _message_content(message).strip()
         if not content.startswith("{"):
             continue
@@ -89,6 +88,8 @@ def _build_execution_summary(messages, report_path: str, json_path: str) -> str:
     embedding_result = None
 
     for message in messages:
+        if not _is_tool_message(message):
+            continue
         content = _message_content(message)
         if "new papers saved out of" in content:
             search_results.append(content)

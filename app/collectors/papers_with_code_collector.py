@@ -1,5 +1,7 @@
+import httpx
+
 from app.collectors.base import BaseCollector
-from app.models.paper import Paper, SourceName, SearchResult
+from app.models.paper import Paper, Author, Source, SourceName, SearchResult
 
 
 PAPERS_WITH_CODE_SEARCH_URL = "https://paperswithcode.com/search"
@@ -13,6 +15,15 @@ class PapersWithCodeCollector(BaseCollector):
     """
 
     def search(self, query: str, max_results: int = 20) -> SearchResult:
+        response = httpx.get(
+            PAPERS_WITH_CODE_SEARCH_URL,
+            params={"q": query},
+            headers={"User-Agent": "research-agent/1.0"},
+            timeout=30.0,
+            follow_redirects=True,
+        )
+        response.raise_for_status()
+
         return SearchResult(
             query=query,
             source=SourceName.PAPERS_WITCH_CODE,

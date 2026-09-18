@@ -137,15 +137,15 @@ python -m app.scheduler.run_scheduler
 
 ---
 
-## ⚙️ Personalizando seu perfil de pesquisa
+## ⚙️ Customizing Your Research Profile
 
-As preferências de pesquisa de cada usuário ficam no arquivo:
+Each user's research preferences are configured in:
 
 `config/research_profile.yaml`
 
-**Este é o principal arquivo que você deve editar para personalizar o comportamento do sistema.** Você não precisa alterar o código do agente para definir seus interesses.
+**This is the main file you should edit to personalize the system's research behavior.** You do not need to modify the agent code to define your interests.
 
-### Exemplo
+### Example
 
 ```yaml
 interests:
@@ -183,24 +183,24 @@ max_daily_papers: 20
 summary_style: technical
 ```
 
-### O que significa cada seção?
+### What does each section mean?
 
-| Campo | Descrição |
+| Field | Description |
 | :--- | :--- |
-| `interests` | Temas que você deseja pesquisar. Eles são usados como base para a busca e para o perfil semântico de interesse. |
-| `priority` | Peso relativo de cada interesse no ranking. Valores maiores fazem aquele interesse ter maior influência no perfil semântico. |
-| `ignored` | Temas ou domínios que você deseja evitar nos resultados. |
-| `favorite_authors` | Autores que você considera relevantes para sua pesquisa. |
-| `favorite_conferences` | Conferências que você considera relevantes para sua pesquisa. |
-| `reading_level` | Nível técnico esperado para a síntese dos papers, como `beginner`, `intermediate` ou `advanced`. |
-| `max_daily_papers` | Limite configurado de papers considerados por execução/período do perfil. |
-| `summary_style` | Estilo desejado para a síntese, por exemplo `technical`. |
+| `interests` | Topics you want to research. They are used as the basis for paper discovery and the semantic research profile. |
+| `priority` | Relative weight of each interest in the ranking. Higher values give that interest greater influence on the semantic profile. |
+| `ignored` | Topics or domains you want to avoid in the results. |
+| `favorite_authors` | Authors you consider relevant to your research. |
+| `favorite_conferences` | Conferences you consider relevant to your research. |
+| `reading_level` | Expected technical level for the paper synthesis, such as `beginner`, `intermediate`, or `advanced`. |
+| `max_daily_papers` | Configured limit of papers considered per execution/period. |
+| `summary_style` | Desired synthesis style, such as `technical`. |
 
-### 🔑 Entendendo `priority`
+### 🔑 Understanding `priority`
 
-A seção `priority` **não representa porcentagens nem pontos adicionados diretamente a cada paper**. Ela define a importância relativa dos seus interesses dentro do perfil usado pelo ranking.
+The `priority` section **does not represent percentages or points directly added to each paper**. It defines the relative importance of your interests within the profile used by the ranking system.
 
-Por exemplo:
+For example:
 
 ```yaml
 priority:
@@ -209,28 +209,28 @@ priority:
   Graph Neural Network: 50
 ```
 
-Isso significa:
+This means:
 
-- **Deep Learning** → maior influência;
-- **Reinforcement Learning** → influência intermediária;
-- **Graph Neural Network** → menor influência entre os três.
+- **Deep Learning** → highest influence;
+- **Reinforcement Learning** → intermediate influence;
+- **Graph Neural Network** → lower influence among the three.
 
-Os valores são relativos. Você pode usar, por exemplo, `100 / 80 / 50`, `10 / 8 / 5` ou outros valores proporcionais.
+The values are relative. You can use, for example, `100 / 80 / 50`, `10 / 8 / 5`, or other proportional values.
 
-**Importante:** os interesses usados em `priority` devem corresponder aos interesses definidos em `interests`.
+**Important:** interests listed under `priority` should correspond to the interests defined under `interests`.
 
-### 🛠️ Como personalizar
+### 🛠️ How to customize
 
-1. Abra `config/research_profile.yaml`.
-2. Altere as seções de acordo com seus interesses.
-3. Salve o arquivo.
-4. Execute o agente novamente:
+1. Open `config/research_profile.yaml`.
+2. Edit the sections according to your research interests.
+3. Save the file.
+4. Run the agent again:
 
 ```bash
 python -m app.planner.research_agent
 ```
 
-O pipeline utilizará o perfil atualizado na próxima execução.
+The pipeline will use the updated profile on the next execution.
 
 ---
 

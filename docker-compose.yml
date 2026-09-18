@@ -6,9 +6,9 @@ services:
     container_name: research_postgres
     restart: unless-stopped
     environment:
-      POSTGRES_USER: research
-      POSTGRES_PASSWORD: research123
-      POSTGRES_DB: research_agent
+      POSTGRES_USER: ${POSTGRES_USER:-research}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-research}
+      POSTGRES_DB: ${POSTGRES_DB:-research_agent}
     ports:
       - "5432:5432"
     volumes:

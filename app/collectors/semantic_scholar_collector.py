@@ -1,4 +1,3 @@
-# app/collectors/semantic_scholar_collector.py
 import time
 from datetime import date
 
@@ -6,6 +5,7 @@ import httpx
 
 from app.collectors.base import BaseCollector
 from app.models.paper import Paper, Author, Source, SourceName, SearchResult
+
 
 SEMANTIC_SCHOLAR_API_URL = "https://api.semanticscholar.org/graph/v1/paper/search"
 MAX_RETRIES = 3
@@ -57,7 +57,6 @@ class SemanticScholarCollector(BaseCollector):
         )
 
     def _parse_item(self, item: dict) -> Paper | None:
-        # Semantic Scholar às vezes retorna entradas sem abstract ou sem autores - descartamos
         if not item.get("abstract") or not item.get("authors"):
             return None
 

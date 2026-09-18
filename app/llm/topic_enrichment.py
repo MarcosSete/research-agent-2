@@ -1,4 +1,3 @@
-# app/llm/topic_enrichment.py
 import json
 from pathlib import Path
 from langchain_core.messages import HumanMessage, SystemMessage
@@ -6,11 +5,11 @@ from app.llm.factory import get_smart_llm
 
 CACHE_PATH = Path(__file__).resolve().parents[2] / "config" / "topic_enrichment_cache.json"
 
-ENRICHMENT_SYSTEM_PROMPT = """Você é um especialista em taxonomia de pesquisa científica.
-Dado um tópico de pesquisa, gere de 8 a 12 termos e frases fortemente relacionados
-que costumam aparecer em títulos e abstracts de papers sobre esse tema: sinônimos,
-subtemas, técnicas específicas, benchmarks conhecidos e jargão técnico.
-Responda APENAS com os termos separados por vírgula, sem numeração e sem texto extra."""
+ENRICHMENT_SYSTEM_PROMPT = """You are a scientific research taxonomy specialist.
+Given a research topic, generate 8 to 12 strongly related terms and phrases that
+commonly appear in paper titles and abstracts for that topic: synonyms,
+subtopics, specific techniques, known benchmarks, and technical jargon.
+Respond ONLY with comma-separated terms, without numbering or additional text."""
 
 
 def _load_cache() -> dict:
@@ -27,8 +26,7 @@ def _save_cache(cache: dict) -> None:
 
 
 def get_or_enrich_topic(topic: str) -> str:
-    """Retorna 'tópico + termos correlatos gerados por LLM'. Cacheado em disco -
-    só chama a API na primeira vez que um tópico aparece."""
+    """Return the topic plus LLM-generated related terms. Cached on disk."""
     cache = _load_cache()
     key = topic.lower()
 
@@ -39,14 +37,15 @@ def get_or_enrich_topic(topic: str) -> str:
         llm = get_smart_llm(temperature=0.3)
         messages = [
             SystemMessage(content=ENRICHMENT_SYSTEM_PROMPT),
-            HumanMessage(content=f"Tópico: {topic}"),
+            HumanMessage(content=f"Topic: {topic}"),
         ]
         response = llm.invoke(messages)
         expanded = f"{topic}, {response.content.strip()}"
     except Exception as e:
-        # Se a API falhar (rede, chave inválida, etc.), não derruba o pipeline -
-        # usa o tópico puro e segue, mas avisa no console.
-        print(f"[WARN] Falha ao enriquecer '{topic}' via LLM ({e}). Usando tópico sem expansão.")
+        print(
+            f"[WARN] Failed to enrich '{topic}' via LLM ({e}). "
+            "Using the original topic without expansion."
+        )
         expanded = topic
 
     cache[key] = expanded
